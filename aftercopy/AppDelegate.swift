@@ -15,6 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
+        let clipboard = NSPasteboard.general
+        let content = clipboard.string(forType: .string)
+        print("The clipboard has: \(content ?? "nothing")")
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
