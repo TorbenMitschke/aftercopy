@@ -1,8 +1,8 @@
-# ClipStash — Architecture
+# aftercopy — Architecture
 
 ## Overview
 
-ClipStash is a macOS menu bar clipboard manager. It monitors the system clipboard, captures qualifying text entries, and displays them via a menu bar interface.
+aftercopy is a macOS menu bar clipboard manager. It monitors the system clipboard, captures qualifying text entries, and displays them via a menu bar interface.
 
 ## App Lifecycle
 
