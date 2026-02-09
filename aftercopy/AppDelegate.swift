@@ -11,13 +11,13 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBOutlet var window: NSWindow!
-
+    var statusItem: NSStatusItem!
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
-        let clipboard = NSPasteboard.general
-        let content = clipboard.string(forType: .string)
-        print("The clipboard has: \(content ?? "nothing")")
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem.button?.title = "aftercopy"
+        
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
