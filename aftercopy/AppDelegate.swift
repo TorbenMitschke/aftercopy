@@ -17,7 +17,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Insert code here to initialize your application
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.title = "aftercopy"
-        
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
