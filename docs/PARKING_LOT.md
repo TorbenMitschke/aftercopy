@@ -13,6 +13,7 @@ Move items to a GitHub Issue when ready to work on them
 - [ ] Show recent items in menu (Iteration 2)
 - [ ] Click-to-copy from history
 - [ ] Search / quick picker window, with shortcuts/key mappings like cmd+1
+- [ ] Animation of icon when copy is captured or item is pasted from history
 
 ## Data
 - [ ] Persistance (JSON -> SQLite)
