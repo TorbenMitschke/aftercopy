@@ -10,14 +10,13 @@ import Cocoa
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    @IBOutlet var window: NSWindow!
-    var statusItem: NSStatusItem!
-    var statusIcon: NSImage!
+    private(set) var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        guard let button = statusItem.button else {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem = item
+        guard let button = item.button else {
             print("FATAL: NSStatusItem.button is nil. Cannot display menu bar icon. Terminating.")
             NSApplication.shared.terminate(self)
             return
@@ -28,7 +27,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         icon.isTemplate = true
-        self.statusIcon = icon
         button.image = icon
     }
 
