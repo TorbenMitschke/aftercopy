@@ -28,6 +28,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         icon.isTemplate = true
         button.image = icon
+        
+        let menu = NSMenu(title: "aftercopy-status-bar-menu")
+        let quitMenu = NSMenuItem(title:"Quit aftercopy", action: #selector(NSApplication.shared.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(quitMenu)
+        item.menu = menu
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
