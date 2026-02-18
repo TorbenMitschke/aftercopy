@@ -14,6 +14,7 @@ Move items to a GitHub Issue when ready to work on them
 - [ ] Click-to-copy from history
 - [ ] Search / quick picker window, with shortcuts/key mappings like cmd+1
 - [ ] Animation of icon when copy is captured or item is pasted from  (will require storing NSImage reference)
+- [ ] Status bar menu items with images like "Quit Docker Desktop"
 
 ## Data
 - [ ] Persistance (JSON -> SQLite)
