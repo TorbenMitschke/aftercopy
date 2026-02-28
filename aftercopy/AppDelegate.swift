@@ -11,6 +11,7 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private(set) var statusItem: NSStatusItem?
+    private var clipboardMonitor: ClipboardMonitor?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -29,6 +30,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         icon.isTemplate = true
         button.image = icon
         
+        clipboardMonitor = ClipboardMonitor()
+        clipboardMonitor?.start()
+        
         let menu = NSMenu(title: "aftercopy-status-bar-menu")
         let quitMenu = NSMenuItem(title:"Quit aftercopy", action: #selector(NSApplication.shared.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitMenu)
@@ -37,6 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
+        clipboardMonitor?.stop()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
