@@ -33,3 +33,6 @@ Move items to a GitHub Issue when ready to work on them
 
 ## Cross-platform
 - [ ] Linux version (reuse HistoryStore, rewrite ClipboardSource + UI)
+
+## Logic
+- [ ] Notification based logic
