@@ -11,6 +11,7 @@ import AppKit
 class ClipboardMonitor {
     private var timer: Timer?
     private var previousChangeCount = NSPasteboard.general.changeCount
+    var onCapture: ((String) -> Void)?
     
     func start() {
         timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(clipboardPoll), userInfo: nil, repeats: true)
@@ -20,7 +21,7 @@ class ClipboardMonitor {
         if currentNsPasteboard.changeCount != previousChangeCount {
             let newContent = currentNsPasteboard.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines)
             if let newContent, newContent.count >= 4 {
-                print("Clipboard changed: \(newContent)")
+                onCapture?(newContent)
             }
             previousChangeCount = currentNsPasteboard.changeCount
         }
