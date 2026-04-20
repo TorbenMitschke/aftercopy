@@ -12,6 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private(set) var statusItem: NSStatusItem?
     private var clipboardMonitor: ClipboardMonitor?
+    private var clipboardStore: ClipboardStore?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -33,10 +34,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         clipboardMonitor = ClipboardMonitor()
         clipboardMonitor?.start()
         
+        clipboardStore = ClipboardStore()
+        
         let menu = NSMenu(title: "aftercopy-status-bar-menu")
+        let displayCapturedMenu = NSMenuItem(title: "Captured: 0", action: nil , keyEquivalent: "")
+        menu.addItem(displayCapturedMenu)
+        menu.addItem(NSMenuItem.separator())
         let quitMenu = NSMenuItem(title:"Quit aftercopy", action: #selector(NSApplication.shared.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quitMenu)
         item.menu = menu
+        
+        clipboardMonitor?.onCapture = {
+            [weak self] capturedItem in guard let self else { return }
+            self.clipboardStore?.add(capturedItem)
+            displayCapturedMenu.title = "Captured: \(self.clipboardStore?.numberOfItems ?? 0)"
+        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
