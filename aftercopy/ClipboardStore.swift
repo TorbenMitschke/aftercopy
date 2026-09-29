@@ -23,4 +23,8 @@ class ClipboardStore {
     private func checkDuplicates(_ item: String) -> Bool {
         return capturedItems.contains(item)
     }
+
+    func lastNItems(_ n: Int) -> [String] {
+        Array(capturedItems.suffix(n).reversed())
+    }
 }

@@ -1,22 +1,30 @@
 # Progress
 
 ## Current task
-Set up QA infrastructure (issue #15): XCTest target, AGENTS.md kit, PROGRESS.md.
+Implement issue #11 (last-10-items preview list) per its approved plan in
+docs/plans/issue-11-preview-list.md.
 
 ## State
 Iteration 1 complete and merged (status item, menu, quit, polling/filter/dedup,
-captured count). Issue #11 (last-10-items preview list) has an approved plan
-in docs/plans/ but its buggy first-pass implementation was discarded — not yet
-reimplemented. Automated tests now exist: `aftercopyTests` (XCTest, unit
-testing bundle hosted in the `aftercopy` app) covers `ClipboardStore` (add
-increments count, duplicate add is a no-op) and `ClipboardMonitor.shouldCapture`
-(the extracted pure filter: nil/empty/whitespace-only/<4-chars-trimmed all
-return nil, valid input returns the trimmed string). `ClipboardMonitor.clipboardPoll`
-was refactored to call `shouldCapture` — no behavior change.
+captured count). QA infrastructure (issue #15) complete and merged. Issue #11
+is now implemented on branch `feat/issue-11-preview-list`, not yet merged:
+`ClipboardStore.lastNItems(_:)` returns the last N captured items most-recent-
+first (with test coverage: fewer-than-N, most-recent-first, clamps-at-N, empty
+store); new `ClipboardWriter` (NSObject subclass) copies an `NSMenuItem`'s
+`representedObject` string to the pasteboard when clicked; `AppDelegate` now
+builds a fixed two-separator menu skeleton and rebuilds the preview section
+from `ClipboardStore.lastNItems` on every capture, with titles truncated to 20
+chars (newlines collapsed to spaces) via a private `previewTitle` helper.
+All 9 automated tests pass; `xcodebuild build` also succeeds. The plan's
+manual checklist (launch via Xcode, Cmd+R; click-to-copy, truncation,
+12+-item capping, etc.) has NOT been run in this session — this environment
+has no way to interact with a launched macOS GUI app, so that verification is
+left for human review before merge, same as the push/PR step.
 
 ## Next step
-Implement issue #11 per its plan doc, adding ClipboardStoreTests coverage for
-any new ClipboardStore methods (e.g. lastNItems) in the same session.
+Human: run the manual checklist in docs/plans/issue-11-preview-list.md (Cmd+R
+in Xcode), then push and open a PR for `feat/issue-11-preview-list` if it
+passes.
 
 ## Decisions
 - 2026-09-29: Automated tests cover pure logic only (ClipboardStore, extracted
@@ -47,6 +55,19 @@ any new ClipboardStore methods (e.g. lastNItems) in the same session.
   infrastructure-only session. Treated the plan's test list as a forward
   reference to when issue #11 is implemented (see Next step above), not as an
   instruction to add the feature now.
+- 2026-09-29: Implemented issue #11 exactly per its plan doc in three commits
+  (ClipboardStore.lastNItems, ClipboardWriter, AppDelegate menu rebuild); no
+  deviations from the plan's code or scope boundaries. `previewTitleMaxLength`
+  is a stored property on `AppDelegate` per the plan, but `previewTitle`'s
+  default parameter (`maxLength: Int = 20`) is a separate hardcoded literal,
+  not a reference to that property — this matches the plan's code verbatim,
+  so left as-is rather than "fixing" an inconsistency the plan didn't flag.
+  Did not run the plan's manual checklist (see State above): this session has
+  no way to launch/interact with a macOS GUI app, so AppKit/menu/pasteboard
+  behavior is unverified by this session and must be checked by a human via
+  Cmd+R before merge.
 
 ## Open issues
-(none yet)
+- Manual checklist in docs/plans/issue-11-preview-list.md for issue #11 has
+  not been run — needs a human with Xcode/GUI access before this branch is
+  merged.
