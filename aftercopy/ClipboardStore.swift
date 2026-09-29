@@ -10,6 +10,8 @@ import Foundation
 class ClipboardStore {
     private var capturedItems: [String] = []
     var numberOfItems: Int { capturedItems.count }
+
+    nonisolated deinit {}
     
     func add(_ item: String) {
         if checkDuplicates(item) {
