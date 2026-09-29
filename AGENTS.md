@@ -16,6 +16,10 @@ No SPM dependencies. No external services.
   functions like ClipboardMonitor.shouldCapture). AppKit/menu/pasteboard wiring
   is verified via the manual checklist in the relevant docs/plans/ file — do not
   write XCUITest / UI-automation tests for this menu-bar-only app.
+- Before reporting a task done or updating PROGRESS.md's Open issues to flag
+  a missing manual checklist, ask the user whether they already ran it —
+  agent sessions have no way to launch/interact with the GUI app themselves,
+  so don't assume it's outstanding.
 - New pure logic ships with unit test coverage in the same task, not a follow-up.
 - If a check fails: max 2 fix attempts. On the second failure, stop, revert to
   the last passing state, and report what was tried, why it failed, and what
