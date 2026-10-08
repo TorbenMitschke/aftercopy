@@ -1,27 +1,39 @@
 # Progress
 
 ## Current task
-Plan the #19 direct-paste/number-shortcut extension in
-`docs/plans/keyboard-history-direct-paste.md`; awaiting explicit approval of the
-concrete plan and proposed App Sandbox build-setting change.
+Implement #19's user-approved direct-paste and numbered-shortcut extension per
+`docs/plans/keyboard-history-direct-paste.md`. Code committed; awaiting human result.
 
 ## State
-The existing #19 implementation is committed on `feat/keyboard-history-menu`
-(`ee1e42c`, documented in `c34ebf2`), with 15 passing tests at the last check.
-The user reports menu Up/Down navigation works. Number keys do not predictably
-select rows because numbered equivalents are not implemented. Return copies,
-matching the original plan, but the user expects direct paste and agreed to
-planning it with copy-only fallback and visible numbered shortcuts. This is
-partial human verification, not a full checklist pass. No extension code or
-build settings have been changed. Nothing is pushed; #19 remains open.
+Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
+with explicit user approval; `4e750ba` adds native ⌘1–⌘9/⌘0 menu equivalents,
+PasteCoordinator, pure PasteEligibility, destination sessions, asynchronous bounded
+readiness, and the explicit Enable Direct Paste permission action. Selection copies
+then posts once to the original PID when permission/focus/modifiers/clipboard allow;
+otherwise it retains copy-only behavior and shows a reason. All 34 tests pass;
+Release build succeeds; Debug and Release codesign output has no Sandbox entitlement.
+No permission was granted or paste event emitted by tests/the agent. #19 scope is
+updated. No dependency/check-command changes; nothing pushed and issue still open.
+
+The user confirmed original menu arrows work; the earlier copy-only Return behavior
+matched the initial plan but motivated this approved extension. The new manual result
+for `4e750ba` was requested through a clickable interaction; awaiting report.
 
 ## Next step
-User: choose the clickable plan approval, explicitly authorizing Sandbox removal
-for direct paste, or choose numbered selection with copy-only behavior instead.
-After approval, update #19 scope and implement the chosen extension with pure
-logic tests and the new manual checklist.
+User: relaunch with Cmd+R, choose Enable Direct Paste…, grant macOS permission if
+prompted, then report the direct-paste plan's human checklist for `4e750ba`. Check
+Return and ⌘number insertion, Escape, held modifiers, permission fallback/revocation,
+focus changes, and no duplicate/stale paste. Do not mark #19 complete until accepted.
 
 ## Decisions
+- 2026-10-09: User explicitly approved direct paste and Sandbox removal. Only the
+  two ENABLE_APP_SANDBOX values were changed, in a separate commit. Event-posting
+  permission remains a user action; no System Settings automation or helper.
+- 2026-10-09: Native row equivalents use Command plus 1–9/0; plain digits are not
+  numbered shortcuts. Paste uses the recorded original PID, bounded readiness,
+  current clipboard/session validation, and no replay after posting or permission
+  changes. Pure decision types opt out of MainActor isolation to avoid conformance
+  warnings while AppKit coordination remains main-actor isolated.
 - 2026-10-09: User confirmed Up/Down works and requested direct paste plus visible
   number mappings. A new plan proposes ⌘1–⌘9/⌘0 and event-posting permission with
   copy-only fallback. Direct paste needs explicit approval to disable App Sandbox
@@ -78,7 +90,6 @@ logic tests and the new manual checklist.
   Cmd+R before merge.
 
 ## Open issues
-- #19 full manual checklist is not confirmed; the user's report establishes
-  working arrows and a desired extension beyond the original copy-only contract.
-- Direct paste's permission, focus, modifier-release, and native action-ordering
-  behavior require implementation and human verification after plan approval.
+- #19 extension manual result: user asked; awaiting report. This is not a claim
+  that it has not been run. Actual paste, permission UI, focus, and native menu
+  close/action timing remain human acceptance points.

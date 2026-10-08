@@ -1,8 +1,8 @@
 # History selection: direct paste and visible number shortcuts
 
-Date: 2026-10-09. Status: proposed; awaiting explicit plan/build-setting approval.
+Date: 2026-10-09. Status: user-approved on 2026-10-09; implemented, human result awaiting report.
 Branch: `feat/keyboard-history-menu`. Extends issue #19 and the earlier approved
-`keyboard-history-menu.md` plan; no extension code has been written yet.
+`keyboard-history-menu.md` plan; the implementation record below describes the extension.
 
 ## Observed behavior and intended outcome
 
@@ -142,3 +142,21 @@ the last passing checkpoint, preserving diagnostic output.
 Approve direct paste plus numbered equivalents **and disabling App Sandbox in
 Debug and Release**, or choose numbered equivalents with copy-only behavior and
 leave Sandbox enabled. No feature/build-setting changes occur before that choice.
+
+## Implementation record — 2026-10-09
+
+- User explicitly chose “Approve direct paste + Sandbox removal”. Issue #19 now
+  includes the extension; this plan supersedes the original copy-only selection contract.
+- Sandbox-only commit: `134257f` (two setting values only).
+- Direct-paste/numbered-selection commit: `4e750ba`.
+- Required XCTest check passes all 34 tests; Release build succeeds. First test
+  compilation exposed isolation warnings for the pure decision's synthesized
+  Equatable conformance; marking the pure policy/types nonisolated resolved them
+  without modifying tests or project concurrency settings.
+- codesign inspection of built Debug and Release apps confirms no app-sandbox
+  entitlement. Xcode's unrelated project ordering changes were excluded.
+- Default-run-loop readiness timer is session-gated and bounded to one second;
+  no blocking sleep or permission replay. Posting uses the recorded process ID.
+- User asked for the new manual result for `4e750ba`; awaiting report. Native
+  numbered equivalents, permission prompting, actual paste, and close/action
+  callback timing are not established by pure tests.

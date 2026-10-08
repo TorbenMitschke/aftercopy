@@ -14,7 +14,7 @@ NSApplication → AppDelegate
                   ├── NSStatusItem ← HistoryMenuController.menu
                   └── GlobalHotkey → HistoryMenuController.present
                                             │
-                                            └── ClipboardWriter → NSPasteboard
+                                            └── PasteCoordinator → ClipboardWriter → NSPasteboard
 ```
 
 - **NOT** using SwiftUI `@main App` lifecycle.
@@ -26,7 +26,7 @@ NSApplication → AppDelegate
 - Owns the status item and top-level components; wires their callbacks
 - Loads/saves the selected shortcut preset with UserDefaults
 - Starts monitoring after the store, menu, and callbacks are initialized
-- Stops the monitor and unregisters the hotkey at shutdown
+- Stops pending paste work, the monitor, and the hotkey at shutdown
 - Skips live clipboard/shortcut startup in the XCTest app host
 
 ### ClipboardMonitor
@@ -42,12 +42,12 @@ NSApplication → AppDelegate
 - Keeps the existing nonisolated deinit workaround for the test-host toolchain crash
 
 ### HistoryMenuController
-- Owns the menu, preview section, strongly retained ClipboardWriter, and shortcut submenu
-- Displays ten recent entries, single-line titles capped at 20 characters, and full captured text in representedObject
+- Owns the menu, preview section, and shortcut/permission actions; forwards selection to PasteCoordinator
+- Displays ten recent entries, single-line titles capped at 20 characters, full captured text in representedObject, and native ⌘1–⌘9/⌘0 equivalents
 - Refreshes capture before mouse/shortcut menu opening through `onWillOpen`
 - Presents through the native status-button `performClick(nil)` path, without explicit app activation
 - Gates nested presentation while the menu is opening/tracking
-- Displays registration status and preset checkmarks; reports selection through callbacks
+- Records a per-opening destination/session and displays registration status, paste permission, latest fallback, and preset checkmarks
 
 ### GlobalHotkey / ShortcutConfiguration
 - GlobalHotkey owns the Carbon application event handler and exclusive hotkey registration
@@ -58,7 +58,24 @@ NSApplication → AppDelegate
 
 ### ClipboardWriter
 - Copies an NSMenuItem's representedObject string to NSPasteboard.general
-- Does not inject paste keystrokes; the user pastes with Cmd+V in the destination app
+- Reports write success so failed copies cannot trigger a synthetic paste
+- Keeps the existing target/action copy adapter; the history menu now forwards selection to PasteCoordinator
+
+### PasteCoordinator / PasteEligibility / HistoryItemShortcut
+- PasteCoordinator owns ClipboardWriter and a per-opening destination/session; new sessions and shutdown invalidate pending work
+- Copies selection first, then waits asynchronously on a default-mode timer until menu tracking is finished, necessary focus is confirmed, and shortcut modifiers are released
+- Bounds readiness to one second; rechecks permission, destination PID/liveness, focus, and pasteboard changeCount before posting one Cmd+V pair addressed to the original PID
+- Activates the original destination only when aftercopy itself is frontmost; never activates over another external app
+- Does not retry posted events or claim that posting proves insertion into a receiving app
+- Requests event-posting permission only through the explicit Enable Direct Paste action; denial/revocation leads to copy-only behavior without later replay
+- PasteEligibility is nonisolated pure value logic for paste/activation/wait/fallback decisions, with XCTest coverage
+- HistoryItemShortcut maps displayed rows to digit key equivalents (tenth row uses 0)
+
+### App Sandbox and permissions
+- The user explicitly approved setting ENABLE_APP_SANDBOX to NO in Debug and Release for synthesized paste on 2026-10-09
+- This is a non-sandboxed local utility; event posting requires separate user-granted macOS permission
+- No event taps, Input Monitoring request, AppleScript, or automated System Settings changes are used
+- Removing Sandbox may change the UserDefaults location; if a prior shortcut preset is not restored, choose it again in the menu
 
 ## Key Design Decisions
 
@@ -85,8 +102,11 @@ NSPasteboard does not post system notifications when the clipboard changes. Poll
 
 ## Verification boundary
 
-XCTest covers store/filter and shortcut preference restoration logic; app-hosted tests
-skip live capture and hotkey registration. Native menu keyboard navigation, focus,
-pasteboard writing, conflicts, and shortcut cleanup are verified with the manual
-checklist in `docs/plans/keyboard-history-menu.md`. The implementation has 15 passing
-tests; its human keyboard/focus result is awaiting the user's report.
+XCTest covers store/filter, shortcut preferences, numbered mapping, and pure paste
+eligibility (34 tests). App-hosted tests skip live capture and hotkey registration;
+tests do not grant permission, activate another app, or post events. Native menu
+navigation, permission, focus, actual paste, conflicts, and callback ordering use
+`docs/plans/keyboard-history-direct-paste.md`'s human checklist. The user confirmed
+original arrow navigation works; the direct-paste extension's result is awaiting
+report. The Release build passes and Debug/Release Sandbox entitlement absence was
+inspected with codesign.

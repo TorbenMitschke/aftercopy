@@ -1,6 +1,6 @@
 # Keyboard history menu — implementation plan
 
-Date: 2026-10-09. Status: approved by user on 2026-10-09; implemented for #19, human verification awaiting report.
+Date: 2026-10-09. Status: approved and implemented for #19; arrows user-confirmed. Direct-paste extension supersedes selection behavior.
 Branch: `feat/keyboard-history-menu`, based on the committed next-iteration proposal.
 
 ## Outcome and acceptance criteria
@@ -83,3 +83,10 @@ Before implementation, approve this concrete plan under AGENTS.md: “Beyond a t
   are unchanged. Xcode-generated project ordering changes were excluded from commits.
 - The user was asked for the manual result for `ee1e42c`; awaiting their report.
   This iteration is not marked complete until keyboard/focus acceptance is confirmed.
+
+### Follow-up
+
+The user confirmed arrow navigation, requested direct paste and predictable
+numbered equivalents, then explicitly approved the extension and Sandbox removal.
+See `keyboard-history-direct-paste.md` for the current selection contract and
+manual checklist; this original copy-only plan remains a historical record.
