@@ -1,24 +1,34 @@
 # Progress
 
 ## Current task
-Plan iteration 1 from the next-iteration proposal: global shortcut opens the
-existing history menu for keyboard recall. Plan:
-`docs/plans/keyboard-history-menu.md`. Awaiting approval before implementation.
+Implement #19: global shortcut opens the existing history menu for keyboard recall,
+per the user-approved `docs/plans/keyboard-history-menu.md`.
 
 ## State
-Iteration 1 (original capture/count foundation), QA infrastructure (#15), and
-preview/click-to-copy (#11) are merged. The user confirmed on 2026-10-02 that
-both #11 and #15 manual checklists passed. Existing source has 11 XCTest tests;
-the prior proposal-session check passed all 11. The proposal is committed as
-`6dd7182`. Planning now occurs on `feat/keyboard-history-menu`, based on that
-proposal branch; no feature code or GitHub issue has been created yet.
+Original capture/count foundation, QA infrastructure (#15), and preview/copy (#11)
+are merged; the user confirmed both prior manual checklists passed on 2026-10-02.
+#19 implementation is committed on `feat/keyboard-history-menu`: `998cc01` extracts
+HistoryMenuController; `ee1e42c` adds native menu shortcut invocation, saved V/H/Off
+presets, registration status/errors, immediate capture refresh, lifecycle cleanup,
+and an XCTest-host startup guard. All 15 tests pass (eleven existing plus four
+configuration restoration tests). No build settings, check command, dependencies,
+or UI automation were changed. Nothing is pushed; #19 remains open.
 
 ## Next step
-User: review and approve the keyboard-history-menu plan, including the proposed
-Control–Option–V default, alternate Control–Option–H, and Off option.
-Then create/reuse the scoped issue and begin implementation on this branch.
+User: report the #19 manual checklist result for `ee1e42c` (already asked through a
+clickable interaction). If keyboard navigation/focus fails, diagnose the native
+menu path and evaluate the plan's popup fallback before considering a panel.
+Do not mark this iteration complete until the manual acceptance result is known.
 
 ## Decisions
+- 2026-10-09: User approved the concrete plan, including preset choices and scoped
+  issue creation (#19). Native status-button presentation is implemented without
+  app activation; keyboard/focus behavior is awaiting human verification.
+- 2026-10-09: The app-hosted test launch skips live capture and shortcut registration,
+  keeping pure logic tests from observing the user's clipboard or claiming a hotkey.
+- 2026-10-09: Missing/unknown shortcut preferences default to Control–Option–V;
+  explicit Off and alternate H survive restoration. Registration failures preserve
+  the selected setting and leave mouse access working.
 - 2026-10-09: User selected keyboard menu recall as the next iteration. A new
   feature branch and concrete plan were prepared; implementation awaits plan
   approval under AGENTS.md. Prior manual checklists are user-confirmed passed.
@@ -63,5 +73,5 @@ Then create/reuse the scoped issue and begin implementation on this branch.
   Cmd+R before merge.
 
 ## Open issues
-- Native menu keyboard navigation/focus restoration must be validated during
-  implementation; pure unit tests cannot establish those behaviors.
+- #19 manual keyboard/menu/focus result: user asked; awaiting report. This does not
+  imply the checklist has not been run. Native success is not established by XCTest.

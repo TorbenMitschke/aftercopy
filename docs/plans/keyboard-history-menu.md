@@ -1,6 +1,6 @@
 # Keyboard history menu — implementation plan
 
-Date: 2026-10-09. Status: awaiting approval; no feature implementation yet.
+Date: 2026-10-09. Status: approved by user on 2026-10-09; implemented for #19, human verification awaiting report.
 Branch: `feat/keyboard-history-menu`, based on the committed next-iteration proposal.
 
 ## Outcome and acceptance criteria
@@ -71,3 +71,15 @@ Native menu keyboard focus is the principal uncertainty. The implementation can 
 If checks fail, follow AGENTS.md's two-attempt limit, preserve diagnostics, and revert only changes made by this task to the last passing state. If native focus cannot meet acceptance criteria, keep the passing checkpoint and return for a revised scope. The original mouse path must remain usable throughout.
 
 Before implementation, approve this concrete plan under AGENTS.md: “Beyond a trivial fix: write a plan in docs/plans/, wait for approval, then implement.” Approval also authorizes the scoped issue creation in step 1; no issue or feature code is created in this planning phase.
+
+## Implementation record — 2026-10-09
+
+- Issue: https://github.com/TorbenMitschke/aftercopy/issues/19
+- Menu extraction: `998cc01`; shortcut implementation: `ee1e42c`.
+- Native `performClick(nil)` presentation is implemented without app activation;
+  no popup fallback or focus restoration intervention has been needed or validated yet.
+- Configuration restoration has four new pure tests; all 15 automated tests pass.
+- App-hosted tests skip live monitor/hotkey startup. Build settings and check command
+  are unchanged. Xcode-generated project ordering changes were excluded from commits.
+- The user was asked for the manual result for `ee1e42c`; awaiting their report.
+  This iteration is not marked complete until keyboard/focus acceptance is confirmed.
