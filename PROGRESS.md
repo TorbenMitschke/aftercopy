@@ -1,26 +1,31 @@
 # Progress
 
 ## Current task
-Implement #19: global shortcut opens the existing history menu for keyboard recall,
-per the user-approved `docs/plans/keyboard-history-menu.md`.
+Plan the #19 direct-paste/number-shortcut extension in
+`docs/plans/keyboard-history-direct-paste.md`; awaiting explicit approval of the
+concrete plan and proposed App Sandbox build-setting change.
 
 ## State
-Original capture/count foundation, QA infrastructure (#15), and preview/copy (#11)
-are merged; the user confirmed both prior manual checklists passed on 2026-10-02.
-#19 implementation is committed on `feat/keyboard-history-menu`: `998cc01` extracts
-HistoryMenuController; `ee1e42c` adds native menu shortcut invocation, saved V/H/Off
-presets, registration status/errors, immediate capture refresh, lifecycle cleanup,
-and an XCTest-host startup guard. All 15 tests pass (eleven existing plus four
-configuration restoration tests). No build settings, check command, dependencies,
-or UI automation were changed. Nothing is pushed; #19 remains open.
+The existing #19 implementation is committed on `feat/keyboard-history-menu`
+(`ee1e42c`, documented in `c34ebf2`), with 15 passing tests at the last check.
+The user reports menu Up/Down navigation works. Number keys do not predictably
+select rows because numbered equivalents are not implemented. Return copies,
+matching the original plan, but the user expects direct paste and agreed to
+planning it with copy-only fallback and visible numbered shortcuts. This is
+partial human verification, not a full checklist pass. No extension code or
+build settings have been changed. Nothing is pushed; #19 remains open.
 
 ## Next step
-User: report the #19 manual checklist result for `ee1e42c` (already asked through a
-clickable interaction). If keyboard navigation/focus fails, diagnose the native
-menu path and evaluate the plan's popup fallback before considering a panel.
-Do not mark this iteration complete until the manual acceptance result is known.
+User: choose the clickable plan approval, explicitly authorizing Sandbox removal
+for direct paste, or choose numbered selection with copy-only behavior instead.
+After approval, update #19 scope and implement the chosen extension with pure
+logic tests and the new manual checklist.
 
 ## Decisions
+- 2026-10-09: User confirmed Up/Down works and requested direct paste plus visible
+  number mappings. A new plan proposes ⌘1–⌘9/⌘0 and event-posting permission with
+  copy-only fallback. Direct paste needs explicit approval to disable App Sandbox
+  in Debug and Release; only planning/documentation has been performed so far.
 - 2026-10-09: User approved the concrete plan, including preset choices and scoped
   issue creation (#19). Native status-button presentation is implemented without
   app activation; keyboard/focus behavior is awaiting human verification.
@@ -73,5 +78,7 @@ Do not mark this iteration complete until the manual acceptance result is known.
   Cmd+R before merge.
 
 ## Open issues
-- #19 manual keyboard/menu/focus result: user asked; awaiting report. This does not
-  imply the checklist has not been run. Native success is not established by XCTest.
+- #19 full manual checklist is not confirmed; the user's report establishes
+  working arrows and a desired extension beyond the original copy-only contract.
+- Direct paste's permission, focus, modifier-release, and native action-ordering
+  behavior require implementation and human verification after plan approval.
