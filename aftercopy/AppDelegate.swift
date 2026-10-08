@@ -14,9 +14,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var clipboardMonitor: ClipboardMonitor?
     private var clipboardStore: ClipboardStore?
     private let historyMenuController = HistoryMenuController()
+    private let globalHotkey = GlobalHotkey()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
+        // App-hosted logic tests must not monitor the user's clipboard or own a shortcut.
+        guard NSClassFromString("XCTestCase") == nil,
+              ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem = item
         guard let button = item.button else {
@@ -33,7 +36,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         button.image = icon
         
         clipboardMonitor = ClipboardMonitor()
-        clipboardMonitor?.start()
         
         clipboardStore = ClipboardStore()
         
@@ -43,10 +45,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             store.add(capturedItem)
             self.historyMenuController.render(store)
         }
+        historyMenuController.onWillOpen = { [weak self] in
+            self?.clipboardMonitor?.captureIfChanged()
+        }
+        historyMenuController.onChooseShortcut = { [weak self] configuration in
+            UserDefaults.standard.set(configuration.rawValue, forKey: ShortcutConfiguration.defaultsKey)
+            self?.configureShortcut(configuration)
+        }
+        globalHotkey.onInvoke = { [weak self] in
+            guard let self, let button = self.statusItem?.button else { return }
+            self.historyMenuController.present(from: button)
+        }
+        let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
+        configureShortcut(configuration)
+        clipboardMonitor?.start()
+    }
+
+    private func configureShortcut(_ configuration: ShortcutConfiguration) {
+        globalHotkey.configure(configuration)
+        historyMenuController.updateShortcut(configuration, registrationStatus: globalHotkey.registrationStatus)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        globalHotkey.stop()
         clipboardMonitor?.stop()
     }
 
