@@ -1,32 +1,27 @@
 # Progress
 
 ## Current task
-Implement issue #11 (last-10-items preview list) per its approved plan in
-docs/plans/issue-11-preview-list.md.
+Plan iteration 1 from the next-iteration proposal: global shortcut opens the
+existing history menu for keyboard recall. Plan:
+`docs/plans/keyboard-history-menu.md`. Awaiting approval before implementation.
 
 ## State
-Iteration 1 complete and merged (status item, menu, quit, polling/filter/dedup,
-captured count). QA infrastructure (issue #15) complete and merged. Issue #11
-is now implemented on branch `feat/issue-11-preview-list`, not yet merged:
-`ClipboardStore.lastNItems(_:)` returns the last N captured items most-recent-
-first (with test coverage: fewer-than-N, most-recent-first, clamps-at-N, empty
-store); new `ClipboardWriter` (NSObject subclass) copies an `NSMenuItem`'s
-`representedObject` string to the pasteboard when clicked; `AppDelegate` now
-builds a fixed two-separator menu skeleton and rebuilds the preview section
-from `ClipboardStore.lastNItems` on every capture, with titles truncated to 20
-chars (newlines collapsed to spaces) via a private `previewTitle` helper.
-All 9 automated tests pass; `xcodebuild build` also succeeds. The plan's
-manual checklist (launch via Xcode, Cmd+R; click-to-copy, truncation,
-12+-item capping, etc.) has NOT been run in this session — this environment
-has no way to interact with a launched macOS GUI app, so that verification is
-left for human review before merge, same as the push/PR step.
+Iteration 1 (original capture/count foundation), QA infrastructure (#15), and
+preview/click-to-copy (#11) are merged. The user confirmed on 2026-10-02 that
+both #11 and #15 manual checklists passed. Existing source has 11 XCTest tests;
+the prior proposal-session check passed all 11. The proposal is committed as
+`6dd7182`. Planning now occurs on `feat/keyboard-history-menu`, based on that
+proposal branch; no feature code or GitHub issue has been created yet.
 
 ## Next step
-Human: run the manual checklist in docs/plans/issue-11-preview-list.md (Cmd+R
-in Xcode), then push and open a PR for `feat/issue-11-preview-list` if it
-passes.
+User: review and approve the keyboard-history-menu plan, including the proposed
+Control–Option–V default, alternate Control–Option–H, and Off option.
+Then create/reuse the scoped issue and begin implementation on this branch.
 
 ## Decisions
+- 2026-10-09: User selected keyboard menu recall as the next iteration. A new
+  feature branch and concrete plan were prepared; implementation awaits plan
+  approval under AGENTS.md. Prior manual checklists are user-confirmed passed.
 - 2026-09-29: Automated tests cover pure logic only (ClipboardStore, extracted
   ClipboardMonitor filter); AppKit/menu/pasteboard wiring stays on the manual
   checklist — XCUITest for a menu-bar-only app is too flaky to be "easily
@@ -68,6 +63,5 @@ passes.
   Cmd+R before merge.
 
 ## Open issues
-- Manual checklist in docs/plans/issue-11-preview-list.md for issue #11 has
-  not been run — needs a human with Xcode/GUI access before this branch is
-  merged.
+- Native menu keyboard navigation/focus restoration must be validated during
+  implementation; pure unit tests cannot establish those behaviors.
