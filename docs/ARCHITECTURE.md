@@ -107,6 +107,12 @@ eligibility (34 tests). App-hosted tests skip live capture and hotkey registrati
 tests do not grant permission, activate another app, or post events. Native menu
 navigation, permission, focus, actual paste, conflicts, and callback ordering use
 `docs/plans/keyboard-history-direct-paste.md`'s human checklist. The user confirmed
-original arrow navigation works; the direct-paste extension's result is awaiting
-report. The Release build passes and Debug/Release Sandbox entitlement absence was
+original arrow navigation works and reports direct paste works after refreshing
+Accessibility for the current Debug build and launching without rebuilding.
+Individual full-checklist edge cases were not separately reported. The Release build passes and Debug/Release Sandbox entitlement absence was
 inspected with codesign.
+
+Ad-hoc development rebuilds may leave the displayed Accessibility grant out of
+sync with the current app identity. In the observed recovery, removing/re-adding
+the current Debug app and launching without rebuilding restored direct paste.
+Keep runtime permission checks; no bypass or automatic permission reset is used.

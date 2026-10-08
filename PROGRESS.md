@@ -2,7 +2,7 @@
 
 ## Current task
 Implement #19's user-approved direct-paste and numbered-shortcut extension per
-`docs/plans/keyboard-history-direct-paste.md`. Code committed; awaiting human result.
+`docs/plans/keyboard-history-direct-paste.md`. Code committed; user reports direct paste works after permission refresh and launch without rebuilding.
 
 ## State
 Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
@@ -15,17 +15,26 @@ Release build succeeds; Debug and Release codesign output has no Sandbox entitle
 No permission was granted or paste event emitted by tests/the agent. #19 scope is
 updated. No dependency/check-command changes; nothing pushed and issue still open.
 
-The user confirmed original menu arrows work; the earlier copy-only Return behavior
-matched the initial plan but motivated this approved extension. The new manual result
-for `4e750ba` was requested through a clickable interaction; awaiting report.
+The user confirmed original menu arrows work. Direct paste initially stayed copy-only
+although Settings showed Accessibility enabled. macOS logs for the restarted process
+still denied kTCCServicePostEvent. After removing/re-adding the current Debug app's
+Accessibility entry and launching that app from Finder without rebuilding, the user
+reported it works. This confirms the reported direct-paste recovery; individual edge
+cases from the full checklist were not separately reported.
 
 ## Next step
-User: relaunch with Cmd+R, choose Enable Direct Paste…, grant macOS permission if
-prompted, then report the direct-paste plan's human checklist for `4e750ba`. Check
-Return and ⌘number insertion, Escape, held modifiers, permission fallback/revocation,
-focus changes, and no duplicate/stale paste. Do not mark #19 complete until accepted.
+Keep the tested app bundle stable while using the granted permission. Future rebuilds
+may require refreshing the grant for this ad-hoc-signed development app. Preserve the
+manual result below for branch review; push/PR/merge remain user-directed actions.
 
 ## Decisions
+- 2026-10-09: User reports direct paste works after refreshing the Accessibility
+  entry for the current Debug app and launching without rebuilding. Runtime TCC
+  denial explained the copy-only fallback. A stale grant tied to an earlier
+  ad-hoc-signed build is the working diagnosis, not a reason to bypass permission
+  checks. No code or OS permission settings were changed by the agent in diagnosis.
+- 2026-10-09: Documentation verification uses the unchanged check command from an
+  isolated tracked-file copy, leaving the successfully granted app bundle intact.
 - 2026-10-09: User explicitly approved direct paste and Sandbox removal. Only the
   two ENABLE_APP_SANDBOX values were changed, in a separate commit. Event-posting
   permission remains a user action; no System Settings automation or helper.
@@ -90,6 +99,8 @@ focus changes, and no duplicate/stale paste. Do not mark #19 complete until acce
   Cmd+R before merge.
 
 ## Open issues
-- #19 extension manual result: user asked; awaiting report. This is not a claim
-  that it has not been run. Actual paste, permission UI, focus, and native menu
-  close/action timing remain human acceptance points.
+- No remaining failure reported for basic direct paste after permission recovery.
+- Ad-hoc development rebuilds can invalidate the effective permission grant;
+  stable signing/install workflow is deferred setup work, not implemented here.
+- Full checklist edge cases have not been individually reported; retain the
+  checklist and scoped user confirmation rather than claiming every case passed.

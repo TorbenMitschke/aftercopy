@@ -1,6 +1,6 @@
 # History selection: direct paste and visible number shortcuts
 
-Date: 2026-10-09. Status: user-approved on 2026-10-09; implemented, human result awaiting report.
+Date: 2026-10-09. Status: user-approved on 2026-10-09; implemented; user reports direct paste works after permission recovery.
 Branch: `feat/keyboard-history-menu`. Extends issue #19 and the earlier approved
 `keyboard-history-menu.md` plan; the implementation record below describes the extension.
 
@@ -160,3 +160,23 @@ leave Sandbox enabled. No feature/build-setting changes occur before that choice
 - User asked for the new manual result for `4e750ba`; awaiting report. Native
   numbered equivalents, permission prompting, actual paste, and close/action
   callback timing are not established by pure tests.
+
+### User verification and development-permission recovery
+
+On 2026-10-09 the user reported copy-only behavior despite enabling Accessibility
+and restarting. Runtime macOS TCC logs showed event-posting denial for the restarted
+app. The Debug app is ad-hoc signed and had been rebuilt after its initial launch;
+a grant associated with a previous build is the working diagnosis.
+
+The user removed the old aftercopy Accessibility entry, added/enabled the current
+Debug aftercopy.app, and launched the existing app from Finder without rebuilding.
+They reported: “It works with this instruction.” This records successful recovery
+of the reported direct-paste path; it is not a claim that every edge-case checklist
+item was separately verified. No source change or automated permission change was
+needed to recover this test.
+
+To launch without a rebuild: Finder → Cmd+Shift+G → the Xcode DerivedData project's
+`Build/Products/Debug/` folder → double-click aftercopy.app. If rebuilding invalidates
+the grant again, refresh the entry for that current app. Stable development signing
+and an installed-app workflow remain future setup work. Verification of this
+handoff is run from an isolated tracked-file copy to avoid replacing the working app.
