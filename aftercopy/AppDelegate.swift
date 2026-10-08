@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var clipboardStore: ClipboardStore?
     private let historyMenuController = HistoryMenuController()
     private let globalHotkey = GlobalHotkey()
+    private let pasteCoordinator = PasteCoordinator()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App-hosted logic tests must not monitor the user's clipboard or own a shortcut.
@@ -45,7 +46,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             store.add(capturedItem)
             self.historyMenuController.render(store)
         }
+        historyMenuController.onBeginSession = { [weak self] destination in
+            self?.pasteCoordinator.beginSession(destination: destination) ?? 0
+        }
+        historyMenuController.onSelect = { [weak self] text, session in
+            self?.pasteCoordinator.select(text, session: session)
+        }
+        historyMenuController.onMenuClosed = { [weak self] session in
+            self?.pasteCoordinator.menuDidClose(session: session)
+        }
+        historyMenuController.onEnableDirectPaste = { [weak self] in
+            self?.pasteCoordinator.requestPermission()
+            self?.updatePastePermission()
+        }
+        pasteCoordinator.onFallback = { [weak self] reason in
+            self?.historyMenuController.reportPasteFallback(reason)
+            self?.updatePastePermission()
+        }
         historyMenuController.onWillOpen = { [weak self] in
+            self?.updatePastePermission()
             self?.clipboardMonitor?.captureIfChanged()
         }
         historyMenuController.onChooseShortcut = { [weak self] configuration in
@@ -58,7 +77,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
         configureShortcut(configuration)
+        updatePastePermission()
         clipboardMonitor?.start()
+    }
+
+    private func updatePastePermission() {
+        historyMenuController.updatePastePermission(pasteCoordinator.permissionGranted)
     }
 
     private func configureShortcut(_ configuration: ShortcutConfiguration) {
@@ -67,6 +91,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
+        pasteCoordinator.stop()
         globalHotkey.stop()
         clipboardMonitor?.stop()
     }
