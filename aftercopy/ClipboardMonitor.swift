@@ -23,12 +23,16 @@ class ClipboardMonitor {
         return trimmed
     }
     @objc private func clipboardPoll() {
+        captureIfChanged()
+    }
+
+    func captureIfChanged() {
         let currentNsPasteboard = NSPasteboard.general
         if currentNsPasteboard.changeCount != previousChangeCount {
+            previousChangeCount = currentNsPasteboard.changeCount
             if let newContent = ClipboardMonitor.shouldCapture(currentNsPasteboard.string(forType: .string)) {
                 onCapture?(newContent)
             }
-            previousChangeCount = currentNsPasteboard.changeCount
         }
     }
     func stop() {

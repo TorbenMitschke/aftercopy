@@ -10,8 +10,13 @@ import AppKit
 final class ClipboardWriter: NSObject {
     @objc func copyToPasteboard(_ sender: NSMenuItem) {
         guard let text = sender.representedObject as? String else { return }
+        copy(text)
+    }
+
+    @discardableResult
+    func copy(_ text: String) -> Bool {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        return pasteboard.setString(text, forType: .string)
     }
 }

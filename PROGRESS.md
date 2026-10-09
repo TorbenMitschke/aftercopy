@@ -1,32 +1,68 @@
 # Progress
 
 ## Current task
-Implement issue #11 (last-10-items preview list) per its approved plan in
-docs/plans/issue-11-preview-list.md.
+Implement #19's user-approved direct-paste and numbered-shortcut extension per
+`docs/plans/keyboard-history-direct-paste.md`. Implementation and eight-step interactive manual verification complete; ready for branch review.
 
 ## State
-Iteration 1 complete and merged (status item, menu, quit, polling/filter/dedup,
-captured count). QA infrastructure (issue #15) complete and merged. Issue #11
-is now implemented on branch `feat/issue-11-preview-list`, not yet merged:
-`ClipboardStore.lastNItems(_:)` returns the last N captured items most-recent-
-first (with test coverage: fewer-than-N, most-recent-first, clamps-at-N, empty
-store); new `ClipboardWriter` (NSObject subclass) copies an `NSMenuItem`'s
-`representedObject` string to the pasteboard when clicked; `AppDelegate` now
-builds a fixed two-separator menu skeleton and rebuilds the preview section
-from `ClipboardStore.lastNItems` on every capture, with titles truncated to 20
-chars (newlines collapsed to spaces) via a private `previewTitle` helper.
-All 9 automated tests pass; `xcodebuild build` also succeeds. The plan's
-manual checklist (launch via Xcode, Cmd+R; click-to-copy, truncation,
-12+-item capping, etc.) has NOT been run in this session — this environment
-has no way to interact with a launched macOS GUI app, so that verification is
-left for human review before merge, same as the push/PR step.
+Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
+with explicit user approval; `4e750ba` adds native ⌘1–⌘9/⌘0 menu equivalents,
+PasteCoordinator, pure PasteEligibility, destination sessions, asynchronous bounded
+readiness, and the explicit Enable Direct Paste permission action. Selection copies
+then posts once to the original PID when permission/focus/modifiers/clipboard allow;
+otherwise it retains copy-only behavior and shows a reason. All 34 tests pass;
+Release build succeeds; Debug and Release codesign output has no Sandbox entitlement.
+No permission was granted or paste event emitted by tests/the agent. #19 scope is
+updated. No dependency/check-command changes; nothing pushed and issue still open.
+
+The user confirmed original menu arrows work. Direct paste initially stayed copy-only
+although Settings showed Accessibility enabled. macOS logs for the restarted process
+still denied kTCCServicePostEvent. After removing/re-adding the current Debug app's
+Accessibility entry and launching that app from Finder without rebuilding, the user
+reported it works. The user subsequently passed all eight interactive verification
+steps, recorded in the direct-paste plan. These cover normal use, permission
+fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Human: run the manual checklist in docs/plans/issue-11-preview-list.md (Cmd+R
-in Xcode), then push and open a PR for `feat/issue-11-preview-list` if it
-passes.
+Keep the tested app bundle stable while using the granted permission. Future rebuilds
+may require refreshing the grant for this ad-hoc-signed development app. Preserve the
+manual results in the plan for branch review; push/PR/merge remain user-directed actions.
 
 ## Decisions
+- 2026-10-09: User passed all eight interactive manual checks. No implementation
+  changes were needed. Record only the scenarios actually tested; original-app
+  termination and clipboard replacement during pending selection remain covered
+  by pure policy tests, without a separately reported manual result.
+- 2026-10-09: User reports direct paste works after refreshing the Accessibility
+  entry for the current Debug app and launching without rebuilding. Runtime TCC
+  denial explained the copy-only fallback. A stale grant tied to an earlier
+  ad-hoc-signed build is the working diagnosis, not a reason to bypass permission
+  checks. No code or OS permission settings were changed by the agent in diagnosis.
+- 2026-10-09: Documentation verification uses the unchanged check command from an
+  isolated tracked-file copy, leaving the successfully granted app bundle intact.
+- 2026-10-09: User explicitly approved direct paste and Sandbox removal. Only the
+  two ENABLE_APP_SANDBOX values were changed, in a separate commit. Event-posting
+  permission remains a user action; no System Settings automation or helper.
+- 2026-10-09: Native row equivalents use Command plus 1–9/0; plain digits are not
+  numbered shortcuts. Paste uses the recorded original PID, bounded readiness,
+  current clipboard/session validation, and no replay after posting or permission
+  changes. Pure decision types opt out of MainActor isolation to avoid conformance
+  warnings while AppKit coordination remains main-actor isolated.
+- 2026-10-09: User confirmed Up/Down works and requested direct paste plus visible
+  number mappings. A new plan proposes ⌘1–⌘9/⌘0 and event-posting permission with
+  copy-only fallback. Direct paste needs explicit approval to disable App Sandbox
+  in Debug and Release; only planning/documentation has been performed so far.
+- 2026-10-09: User approved the concrete plan, including preset choices and scoped
+  issue creation (#19). Native status-button presentation is implemented without
+  app activation; keyboard/focus behavior is awaiting human verification.
+- 2026-10-09: The app-hosted test launch skips live capture and shortcut registration,
+  keeping pure logic tests from observing the user's clipboard or claiming a hotkey.
+- 2026-10-09: Missing/unknown shortcut preferences default to Control–Option–V;
+  explicit Off and alternate H survive restoration. Registration failures preserve
+  the selected setting and leave mouse access working.
+- 2026-10-09: User selected keyboard menu recall as the next iteration. A new
+  feature branch and concrete plan were prepared; implementation awaits plan
+  approval under AGENTS.md. Prior manual checklists are user-confirmed passed.
 - 2026-09-29: Automated tests cover pure logic only (ClipboardStore, extracted
   ClipboardMonitor filter); AppKit/menu/pasteboard wiring stays on the manual
   checklist — XCUITest for a menu-bar-only app is too flaky to be "easily
@@ -68,6 +104,9 @@ passes.
   Cmd+R before merge.
 
 ## Open issues
-- Manual checklist in docs/plans/issue-11-preview-list.md for issue #11 has
-  not been run — needs a human with Xcode/GUI access before this branch is
-  merged.
+- No remaining failure reported for basic direct paste after permission recovery.
+- Ad-hoc development rebuilds can invalidate the effective permission grant;
+  stable signing/install workflow is deferred setup work, not implemented here.
+- All eight interactive acceptance steps passed. Original-app termination and
+  clipboard replacement during pending selection were not separately exercised
+  in this interactive checklist; those conditions have pure policy test coverage.

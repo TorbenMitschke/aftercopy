@@ -13,13 +13,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var statusItem: NSStatusItem?
     private var clipboardMonitor: ClipboardMonitor?
     private var clipboardStore: ClipboardStore?
-    private let clipboardWriter = ClipboardWriter()   // strong ref — NSMenuItem.target is weak
-    private var previewMenuItems: [NSMenuItem] = []   // tracks currently-inserted preview items for clean removal
-    private let maxPreviewItems = 10
-    private let previewTitleMaxLength = 20
+    private let historyMenuController = HistoryMenuController()
+    private let globalHotkey = GlobalHotkey()
+    private let pasteCoordinator = PasteCoordinator()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
+        // App-hosted logic tests must not monitor the user's clipboard or own a shortcut.
+        guard NSClassFromString("XCTestCase") == nil,
+              ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem = item
         guard let button = item.button else {
@@ -36,52 +37,62 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         button.image = icon
         
         clipboardMonitor = ClipboardMonitor()
-        clipboardMonitor?.start()
         
         clipboardStore = ClipboardStore()
         
-        let menu = NSMenu(title: "aftercopy-status-bar-menu")
-        let displayCapturedMenu = NSMenuItem(title: "Captured: 0", action: nil , keyEquivalent: "")
-        menu.addItem(displayCapturedMenu)
-        menu.addItem(NSMenuItem.separator())         // precedes preview section
-        let bottomSeparator = NSMenuItem.separator() // precedes Quit
-        menu.addItem(bottomSeparator)
-        let quitMenu = NSMenuItem(title:"Quit aftercopy", action: #selector(NSApplication.shared.terminate(_:)), keyEquivalent: "q")
-        menu.addItem(quitMenu)
-        item.menu = menu
-
+        item.menu = historyMenuController.menu
         clipboardMonitor?.onCapture = { [weak self] capturedItem in
-            guard let self else { return }
-            self.clipboardStore?.add(capturedItem)
-            displayCapturedMenu.title = "Captured: \(self.clipboardStore?.numberOfItems ?? 0)"
-
-            self.previewMenuItems.forEach { menu.removeItem($0) }
-            self.previewMenuItems.removeAll()
-
-            let items = self.clipboardStore?.lastNItems(self.maxPreviewItems) ?? []
-            let insertionIndex = menu.index(of: bottomSeparator)
-            for (offset, text) in items.enumerated() {
-                let previewItem = NSMenuItem(
-                    title: self.previewTitle(for: text),
-                    action: #selector(ClipboardWriter.copyToPasteboard(_:)),
-                    keyEquivalent: ""
-                )
-                previewItem.target = self.clipboardWriter
-                previewItem.representedObject = text
-                menu.insertItem(previewItem, at: insertionIndex + offset)
-                self.previewMenuItems.append(previewItem)
-            }
+            guard let self, let store = self.clipboardStore else { return }
+            store.add(capturedItem)
+            self.historyMenuController.render(store)
         }
+        historyMenuController.onBeginSession = { [weak self] destination in
+            self?.pasteCoordinator.beginSession(destination: destination) ?? 0
+        }
+        historyMenuController.onSelect = { [weak self] text, session in
+            self?.pasteCoordinator.select(text, session: session)
+        }
+        historyMenuController.onMenuClosed = { [weak self] session in
+            self?.pasteCoordinator.menuDidClose(session: session)
+        }
+        historyMenuController.onEnableDirectPaste = { [weak self] in
+            self?.pasteCoordinator.requestPermission()
+            self?.updatePastePermission()
+        }
+        pasteCoordinator.onFallback = { [weak self] reason in
+            self?.historyMenuController.reportPasteFallback(reason)
+            self?.updatePastePermission()
+        }
+        historyMenuController.onWillOpen = { [weak self] in
+            self?.updatePastePermission()
+            self?.clipboardMonitor?.captureIfChanged()
+        }
+        historyMenuController.onChooseShortcut = { [weak self] configuration in
+            UserDefaults.standard.set(configuration.rawValue, forKey: ShortcutConfiguration.defaultsKey)
+            self?.configureShortcut(configuration)
+        }
+        globalHotkey.onInvoke = { [weak self] in
+            guard let self, let button = self.statusItem?.button else { return }
+            self.historyMenuController.present(from: button)
+        }
+        let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
+        configureShortcut(configuration)
+        updatePastePermission()
+        clipboardMonitor?.start()
     }
 
-    private func previewTitle(for text: String, maxLength: Int = 20) -> String {
-        let singleLine = text.replacingOccurrences(of: "\n", with: " ")
-        guard singleLine.count > maxLength else { return singleLine }
-        return String(singleLine.prefix(maxLength)) + "..."
+    private func updatePastePermission() {
+        historyMenuController.updatePastePermission(pasteCoordinator.permissionGranted)
+    }
+
+    private func configureShortcut(_ configuration: ShortcutConfiguration) {
+        globalHotkey.configure(configuration)
+        historyMenuController.updateShortcut(configuration, registrationStatus: globalHotkey.registrationStatus)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        pasteCoordinator.stop()
+        globalHotkey.stop()
         clipboardMonitor?.stop()
     }
 
