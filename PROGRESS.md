@@ -1,19 +1,24 @@
 # Progress
 
 ## Current task
-Implement #19's user-approved direct-paste and numbered-shortcut extension per
-`docs/plans/keyboard-history-direct-paste.md`. Implementation and eight-step interactive manual verification complete; ready for branch review.
+Plan bounded local persistence and Clear History per
+`docs/plans/history-persistence-clear-history.md` on branch
+`feat/history-persistence-clear-history`. Planning is complete and awaiting user
+approval; feature implementation is not yet authorized.
 
 ## State
-Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
-with explicit user approval; `4e750ba` adds native ⌘1–⌘9/⌘0 menu equivalents,
-PasteCoordinator, pure PasteEligibility, destination sessions, asynchronous bounded
-readiness, and the explicit Enable Direct Paste permission action. Selection copies
-then posts once to the original PID when permission/focus/modifiers/clipboard allow;
-otherwise it retains copy-only behavior and shows a reason. All 34 tests pass;
-Release build succeeds; Debug and Release codesign output has no Sandbox entitlement.
-No permission was granted or paste event emitted by tests/the agent. #19 scope is
-updated. No dependency/check-command changes; nothing pushed and issue still open.
+Issue #19's keyboard recall plus direct-paste extension is implemented and merged
+into `main` through PR #20 (`f229054`); local `main` matches `origin/main` and is
+clean, and `feat/keyboard-history-menu` is deleted locally and remotely. `134257f`
+disables App Sandbox in Debug/Release with explicit user approval; `4e750ba` adds
+native ⌘1–⌘9/⌘0 menu equivalents, PasteCoordinator, pure PasteEligibility,
+destination sessions, asynchronous bounded readiness, and the explicit Enable
+Direct Paste permission action. Selection copies then posts once to the original
+PID when permission/focus/modifiers/clipboard allow; otherwise it retains
+copy-only behavior and shows a reason. All 34 tests pass; Release build succeeds;
+Debug and Release codesign output has no Sandbox entitlement. No permission was
+granted or paste event emitted by tests/the agent. Issue #19 remains open on
+GitHub; closure is recommended and awaiting user authorization.
 
 The user confirmed original menu arrows work. Direct paste initially stayed copy-only
 although Settings showed Accessibility enabled. macOS logs for the restarted process
@@ -24,11 +29,24 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Keep the tested app bundle stable while using the granted permission. Future rebuilds
-may require refreshing the grant for this ad-hoc-signed development app. Preserve the
-manual results in the plan for branch review; push/PR/merge remain user-directed actions.
+Await user approval of `docs/plans/history-persistence-clear-history.md`. On approval:
+create one scoped GitHub issue for bounded persistence + Clear History (promoting
+the PARKING_LOT "Persistance" item), recommend closing completed issue #19, then
+implement. Until then, keep the tested app bundle stable while using the granted
+permission; future rebuilds may require refreshing the grant for this ad-hoc-signed
+development app.
 
 ## Decisions
+- 2026-10-09: PR #20 merged keyboard recall and direct paste into `main` at
+  `f229054`; `feat/keyboard-history-menu` deleted locally and remotely. PROGRESS.md
+  reconciled with the merged state; issue #19 remains open pending user-authorized
+  closure. Original-app termination and clipboard replacement during pending
+  selection have pure policy test coverage without a separate manual result.
+- 2026-10-09: Planning session for bounded local persistence and Clear History.
+  No persistence issue existed; the PARKING_LOT "Persistance" item is the source.
+  Plan written on `feat/history-persistence-clear-history`; implementation, issue
+  creation, and closing #19 all await explicit approval. No feature code or build
+  settings were changed.
 - 2026-10-09: User passed all eight interactive manual checks. No implementation
   changes were needed. Record only the scenarios actually tested; original-app
   termination and clipboard replacement during pending selection remain covered
@@ -104,7 +122,10 @@ manual results in the plan for branch review; push/PR/merge remain user-directed
   Cmd+R before merge.
 
 ## Open issues
-- No remaining failure reported for basic direct paste after permission recovery.
+- Issue #19 is complete (merged via PR #20, all acceptance steps passed) but still
+  open on GitHub; closure recommended, awaiting user authorization.
+- No persistence or Clear History issue exists yet; a scoped issue is created only
+  after the persistence plan is approved.
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - All eight interactive acceptance steps passed. Original-app termination and
