@@ -2,7 +2,7 @@
 
 ## Current task
 Implement #19's user-approved direct-paste and numbered-shortcut extension per
-`docs/plans/keyboard-history-direct-paste.md`. Code committed; user reports direct paste works after permission refresh and launch without rebuilding.
+`docs/plans/keyboard-history-direct-paste.md`. Implementation and eight-step interactive manual verification complete; ready for branch review.
 
 ## State
 Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
@@ -19,15 +19,20 @@ The user confirmed original menu arrows work. Direct paste initially stayed copy
 although Settings showed Accessibility enabled. macOS logs for the restarted process
 still denied kTCCServicePostEvent. After removing/re-adding the current Debug app's
 Accessibility entry and launching that app from Finder without rebuilding, the user
-reported it works. This confirms the reported direct-paste recovery; individual edge
-cases from the full checklist were not separately reported.
+reported it works. The user subsequently passed all eight interactive verification
+steps, recorded in the direct-paste plan. These cover normal use, permission
+fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
 Keep the tested app bundle stable while using the granted permission. Future rebuilds
 may require refreshing the grant for this ad-hoc-signed development app. Preserve the
-manual result below for branch review; push/PR/merge remain user-directed actions.
+manual results in the plan for branch review; push/PR/merge remain user-directed actions.
 
 ## Decisions
+- 2026-10-09: User passed all eight interactive manual checks. No implementation
+  changes were needed. Record only the scenarios actually tested; original-app
+  termination and clipboard replacement during pending selection remain covered
+  by pure policy tests, without a separately reported manual result.
 - 2026-10-09: User reports direct paste works after refreshing the Accessibility
   entry for the current Debug app and launching without rebuilding. Runtime TCC
   denial explained the copy-only fallback. A stale grant tied to an earlier
@@ -102,5 +107,6 @@ manual result below for branch review; push/PR/merge remain user-directed action
 - No remaining failure reported for basic direct paste after permission recovery.
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
-- Full checklist edge cases have not been individually reported; retain the
-  checklist and scoped user confirmation rather than claiming every case passed.
+- All eight interactive acceptance steps passed. Original-app termination and
+  clipboard replacement during pending selection were not separately exercised
+  in this interactive checklist; those conditions have pure policy test coverage.

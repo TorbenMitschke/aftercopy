@@ -109,7 +109,11 @@ navigation, permission, focus, actual paste, conflicts, and callback ordering us
 `docs/plans/keyboard-history-direct-paste.md`'s human checklist. The user confirmed
 original arrow navigation works and reports direct paste works after refreshing
 Accessibility for the current Debug build and launching without rebuilding.
-Individual full-checklist edge cases were not separately reported. The Release build passes and Debug/Release Sandbox entitlement absence was
+The user subsequently passed all eight interactive acceptance steps recorded in
+the plan, including permission fallback/recovery, timeout, cancellation, and focus
+changes. Original-app termination and clipboard replacement during pending selection
+were not separately checked manually; pure policy tests cover those conditions.
+The Release build passes and Debug/Release Sandbox entitlement absence was
 inspected with codesign.
 
 Ad-hoc development rebuilds may leave the displayed Accessibility grant out of

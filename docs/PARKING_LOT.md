@@ -9,7 +9,7 @@ Move items to a GitHub Issue when ready to work on them
 3. **Review it once per iteration.** After finishing an iteration, skim it and ask: "does anything here now feel easy?"
 
 ## Promoted to an issue
-- Global hotkey and direct-paste/numbered-selection extension: #19, implemented on `feat/keyboard-history-menu`; original arrows and recovered direct-paste path user-confirmed; full edge-case checklist remains the verification reference. Current plan: `docs/plans/keyboard-history-direct-paste.md`.
+- Global hotkey and direct-paste/numbered-selection extension: #19, implemented on `feat/keyboard-history-menu`; all eight interactive acceptance steps user-confirmed passed; remaining verification limits are recorded in the plan. Current plan: `docs/plans/keyboard-history-direct-paste.md`.
 
 ## UI / UX
 - [ ] Notch-aware UI (custom window positioning near MacBook Pro notch)

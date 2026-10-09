@@ -1,6 +1,6 @@
 # History selection: direct paste and visible number shortcuts
 
-Date: 2026-10-09. Status: user-approved on 2026-10-09; implemented; user reports direct paste works after permission recovery.
+Date: 2026-10-09. Status: user-approved on 2026-10-09; implemented; all eight interactive manual verification steps passed.
 Branch: `feat/keyboard-history-menu`. Extends issue #19 and the earlier approved
 `keyboard-history-menu.md` plan; the implementation record below describes the extension.
 
@@ -157,9 +157,9 @@ leave Sandbox enabled. No feature/build-setting changes occur before that choice
   entitlement. Xcode's unrelated project ordering changes were excluded.
 - Default-run-loop readiness timer is session-gated and bounded to one second;
   no blocking sleep or permission replay. Posting uses the recorded process ID.
-- User asked for the new manual result for `4e750ba`; awaiting report. Native
-  numbered equivalents, permission prompting, actual paste, and close/action
-  callback timing are not established by pure tests.
+- Manual results for `4e750ba` were initially pending, followed by permission
+  recovery and the eight-step user verification recorded below. Native wiring
+  and actual paste are established by human checks, not pure tests.
 
 ### User verification and development-permission recovery
 
@@ -180,3 +180,27 @@ To launch without a rebuild: Finder → Cmd+Shift+G → the Xcode DerivedData pr
 the grant again, refresh the entry for that current app. Stable development signing
 and an installed-app workflow remain future setup work. Verification of this
 handoff is run from an isolated tracked-file copy to avoid replacing the working app.
+
+
+### Interactive manual verification — 2026-10-09
+
+The user explicitly reported Pass for each step on the existing Debug app,
+launched without rebuilding. No implementation changes were made during verification.
+
+| Step | User-verified behavior | Result |
+| --- | --- | --- |
+| 1 | Capture three distinct lines; shortcut opens history in newest-first order | Pass |
+| 2 | Arrow selection and Return paste exactly once into TextEdit | Pass |
+| 3 | Visible ⌘1–⌘9/⌘0 mappings; first/ninth/tenth selections; paste waits for brief Command release | Pass |
+| 4 | Escape, outside click, and Shortcut submenu dismissal cause no insertion or delayed paste | Pass |
+| 5 | Immediate capture; full multiline/long text; mouse selection; dedup; ten-item preview cap; paste into a second app | Pass |
+| 6 | Alternate H preset; V inactive after change; Off; mouse access; Quit/restart preserves Off; restore V and direct paste | Pass |
+| 7 | Accessibility Off plus relaunch gives copy-only Return/⌘1 and manual Cmd+V, without repeated prompts; On plus relaunch restores fresh paste without replay | Pass |
+| 8 | Holding Command about two seconds times out without delayed insertion; switching apps while pending causes no paste/focus theft; fresh selection pastes once; Finder non-editable destination causes no insertion/focus theft | Pass |
+
+This completes the agreed interactive acceptance sequence. It does not claim
+manual coverage of every possible race: original-app termination and clipboard
+replacement during a pending selection were not separately exercised here.
+Both conditions have pure PasteEligibility test coverage. No second-app name
+or additional formatting behavior was reported. Permission prompting/recovery
+was also exercised during the earlier development-permission recovery.
