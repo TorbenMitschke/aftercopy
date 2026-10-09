@@ -35,8 +35,12 @@ class ClipboardMonitor {
             }
         }
     }
-    func stop() {
-        timer?.invalidate()
-        timer = nil
-    }
-}
+     func resetBaseline() {
+         previousChangeCount = NSPasteboard.general.changeCount
+     }
+
+     func stop() {
+         timer?.invalidate()
+         timer = nil
+     }
+ }
