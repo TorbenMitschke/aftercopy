@@ -25,6 +25,7 @@ NSApplication → AppDelegate
 ### AppDelegate
 - Owns the status item and top-level components; wires their callbacks
 - Loads/saves the selected shortcut preset with UserDefaults
+- Restores persisted history into the store before the first menu render, saves after each accepted capture, and wires Clear History (store → disk → monitor baseline)
 - Starts monitoring after the store, menu, and callbacks are initialized
 - Stops pending paste work, the monitor, and the hotkey at shutdown
 - Skips live clipboard/shortcut startup in the XCTest app host
@@ -34,12 +35,21 @@ NSApplication → AppDelegate
 - Shares `captureIfChanged()` between timer polling and menu-opening refresh
 - Trims whitespace/newlines and rejects strings shorter than four characters
 - Advances the observed change count before delivering a valid string via `onCapture`
+- `resetBaseline()` re-reads the current change count so Clear History does not recapture the unchanged clipboard
 
 ### ClipboardStore
-- Holds an unbounded in-memory array of unique captured strings
+- Holds a bounded in-memory array of unique captured strings (retention cap: 100, oldest evicted first)
 - Rejects exact duplicates anywhere in history; duplicates do not move to the top
-- Provides item count and `lastNItems(_:)` in newest-insertion-first order
+- Provides item count, `allItems` in insertion order, and `lastNItems(_:)` in newest-insertion-first order
+- `restore(_:)` rebuilds from persisted items through the same dedup/cap path; `clear()` empties the store
 - Keeps the existing nonisolated deinit workaround for the test-host toolchain crash
+
+### HistoryPersistence
+- Owns the versioned plaintext JSON snapshot at `~/Library/Application Support/aftercopy/history.json` (`{"version":1,"items":[...]}`)
+- Saves atomically after each accepted mutation; entries over 64,000 characters stay in memory but are not persisted; files over 16 MiB are unsupported
+- Load distinguishes restored/empty/unavailable: missing file starts empty; corrupt, unsupported-version, or oversized files are quarantined as `history.json.corrupt-<timestamp>` and never silently overwritten
+- Write failures throw so the caller can continue in memory with a menu status; no clipboard contents are logged
+- Keeps the nonisolated deinit workaround; tests use an injectable file URL with isolated temporary storage
 
 ### HistoryMenuController
 - Owns the menu, preview section, and shortcut/permission actions; forwards selection to PasteCoordinator
@@ -48,6 +58,7 @@ NSApplication → AppDelegate
 - Presents through the native status-button `performClick(nil)` path, without explicit app activation
 - Gates nested presentation while the menu is opening/tracking
 - Records a per-opening destination/session and displays registration status, paste permission, latest fallback, and preset checkmarks
+- Offers Clear History (disabled when the store is empty) and a storage status line for save/load failures
 
 ### GlobalHotkey / ShortcutConfiguration
 - GlobalHotkey owns the Carbon application event handler and exclusive hotkey registration
@@ -94,18 +105,19 @@ NSPasteboard does not post system notifications when the clipboard changes. Poll
 - Duplicate entries are ignored (exact string match)
 
 ## Future Architecture (deferred — see PARKING_LOT.md)
-- Persistence layer (UserDefaults, SQLite, or file-based)
 - Search/filter functionality
-- Searchable keyboard picker and optional automatic paste (global menu shortcut implemented in #19)
+- Searchable keyboard picker (global menu shortcut and direct paste implemented in #19)
 - Preferences window
-- Max history size / auto-cleanup
+- SQLite migration for the JSON history file (bounded JSON persistence implemented in #21)
 
 ## Verification boundary
 
-XCTest covers store/filter, shortcut preferences, numbered mapping, and pure paste
-eligibility (34 tests). App-hosted tests skip live capture and hotkey registration;
-tests do not grant permission, activate another app, or post events. Native menu
-navigation, permission, focus, actual paste, conflicts, and callback ordering use
+XCTest covers store/filter, shortcut preferences, numbered mapping, pure paste
+eligibility, and history persistence (50 tests). App-hosted tests skip live capture
+and hotkey registration; tests do not grant permission, activate another app, post
+events, or touch the production history path (persistence tests use isolated
+temporary storage). Native menu navigation, permission, focus, actual paste,
+conflicts, and callback ordering use
 `docs/plans/keyboard-history-direct-paste.md`'s human checklist. The user confirmed
 original arrow navigation works and reports direct paste works after refreshing
 Accessibility for the current Debug build and launching without rebuilding.
@@ -113,7 +125,9 @@ The user subsequently passed all eight interactive acceptance steps recorded in
 the plan, including permission fallback/recovery, timeout, cancellation, and focus
 changes. Original-app termination and clipboard replacement during pending selection
 were not separately checked manually; pure policy tests cover those conditions.
-The Release build passes and Debug/Release Sandbox entitlement absence was
+Persistence and Clear History (issue #21) are covered by pure tests; their manual
+acceptance checklist in `docs/plans/history-persistence-clear-history.md` is pending
+the user. The Release build passes and Debug/Release Sandbox entitlement absence was
 inspected with codesign.
 
 Ad-hoc development rebuilds may leave the displayed Accessibility grant out of

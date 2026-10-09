@@ -1,8 +1,8 @@
 # Bounded local persistence and Clear History — implementation plan
 
-Date: 2026-10-09. Status: **planning only — awaiting user approval; no feature code yet.**
+Date: 2026-10-09. Status: **user-approved on 2026-10-09; implemented on `feat/history-persistence-clear-history`; manual acceptance checklist pending the user.**
 Branch: `feat/history-persistence-clear-history` (branched from `main` at `f229054`, the merged PR #20 state).
-Issue: none exists yet. The PARKING_LOT "Persistance (JSON -> SQLite)" item is the source; a scoped GitHub issue is created only after this plan is approved (see Approval boundary).
+Issue: [#21](https://github.com/TorbenMitschke/aftercopy/issues/21), created on plan approval; promotes the PARKING_LOT "Persistance" item. Issue #19 closed as complete after PR #20 merged.
 
 ## User contract
 
@@ -68,3 +68,29 @@ All 34 existing tests must keep passing. New pure-logic tests ship in the same t
 ## Approval boundary
 
 Approval authorizes: (a) implementing this plan on `feat/history-persistence-clear-history`, (b) creating one scoped GitHub issue for bounded persistence + Clear History (promoting the PARKING_LOT "Persistance" item), and (c) closing completed issue #19, whose work merged through PR #20 with all eight interactive acceptance steps user-confirmed passed. No feature code, issue, push, merge, or issue closure happens before approval.
+
+## Implementation record — 2026-10-09
+
+- User approved the plan as proposed (100-entry cap, plaintext disk history enabled
+  by default, Clear History without a confirmation dialog) and authorized issue
+  creation plus closing #19. Issue [#21](https://github.com/TorbenMitschke/aftercopy/issues/21)
+  created; #19 closed with a summary comment.
+- Commits: `8e990f5` HistoryPersistence + tests; `0ea1628` ClipboardStore cap/clear/
+  restore + tests; `a6ac9bc` Clear History menu action and storage status;
+  `0edfa4e` AppDelegate restore/save/clear wiring and monitor `resetBaseline()`.
+- All decisions in this plan were implemented as written: versioned JSON envelope at
+  `~/Library/Application Support/aftercopy/history.json`, atomic saves after each
+  accepted mutation, immediate restore before monitor start and first render,
+  corrupt/unsupported/oversized files quarantined as `history.json.corrupt-<timestamp>`
+  and never silently overwritten, oversized entries kept in memory but excluded from
+  disk, write failures surfaced as "History: not saved" with in-memory continuation,
+  and Clear History ordering store → disk → monitor baseline so the unchanged
+  clipboard is not recaptured. Clear History does not touch the system clipboard.
+- Required XCTest check passes all 50 tests (34 existing + 11 HistoryPersistence +
+  5 new ClipboardStore), run from an isolated tracked-file copy with separate
+  DerivedData so the working app bundle and its Accessibility grant stay intact.
+  No clipboard contents are logged; only counts, error metadata, and paths.
+- Manual acceptance checklist above is pending: this session cannot launch or
+  interact with the GUI app. The user runs Cmd+R in Xcode and reports results per
+  step; original-app termination and clipboard replacement during pending selection
+  remain covered by pure policy tests from the #19 iteration.
