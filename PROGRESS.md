@@ -1,9 +1,16 @@
 # Progress
 
 ## Current task
-Issue #22 implementation is on `feat/launch-at-login`: opt-in SMAppService
-registration, menu state/error guidance, pure mapping tests, and docs/SETUP.md.
-All 55 automated tests pass (50 existing + 5 new); the isolated Release build passes. User-confirmed manual checks passed for installed launch/history, copy-only and direct paste, login startup on/off, and external Settings refresh. Replacement preserved history; Accessibility was disabled and needed re-enabling for direct paste. Registration-failure handling was not exercised (no errors encountered).
+Issue #22 implementation is on `feat/launch-at-login` as `7c782d7` (feat),
+`29c502d` and `85d2d4e` (docs), pushed and opened as PR #26 (closes #22):
+opt-in SMAppService registration, menu state/error guidance, pure mapping
+tests, and docs/SETUP.md. All 55 automated tests pass (50 existing + 5 new,
+re-run from an isolated copy of the pushed branch); the isolated Release build
+passes. User-confirmed manual checks passed for installed launch/history,
+copy-only and direct paste, login startup on/off, and external Settings
+refresh. Replacement preserved history; Accessibility was disabled and needed
+re-enabling for direct paste. Registration-failure handling was not exercised
+(no errors encountered).
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -39,12 +46,21 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Prepare issue #22 for review with the manual results recorded in
-`docs/plans/launch-at-login-installable-release.md`. Registration-failure behavior
-remains manually untested; no registration errors occurred.
-Implementation is on `feat/launch-at-login`; no push or merge performed.
+Review PR #26 (https://github.com/TorbenMitschke/aftercopy/pull/26, head
+`85d2d4e`); merge awaits user direction. Registration-failure behavior
+remains manually untested; no registration errors occurred. Manual results
+are recorded in `docs/plans/launch-at-login-installable-release.md`.
 
 ## Decisions
+- 2026-10-31: Agent reviewed the uncommitted #22 diff — no code findings (the
+  pure mapping type is named `LoginItemState` rather than the issue's
+  `LoginItemStatusText` sketch because it also carries `isRegistered`; the
+  approved plan does not mandate a name). Split into three conventional
+  commits (`7c782d7` feat, `29c502d`/`85d2d4e` docs), pushed
+  `feat/launch-at-login`, opened PR #26 (closes #22, label feature, linked).
+  Check re-run from an isolated copy of the branch (separate DerivedData;
+  installed app and dev bundle untouched): 55/55 tests passed. No build
+  settings changed. Not merged — merge awaits user direction.
 - 2026-10-31: User directed push/PR/merge for #21. `feat/history-persistence-clear-history`
   pushed, PR #23 created (closes #21) and merged as `b255f19`; issue #21 auto-closed;
   feature branch deleted locally and remotely. The approved #22 plan branch
@@ -168,9 +184,10 @@ Implementation is on `feat/launch-at-login`; no push or merge performed.
 ## Open issues
 - Issue #21: merged via PR #23 (`b255f19`), closed. Manual acceptance checklist
   passed by the user on 2026-10-31 (all six steps); automated coverage: 50 tests.
-- Issue #22: implemented on `feat/launch-at-login`; 55 tests pass. Manual checks
-  passed except registration-failure handling (not exercised). Replacement required
-  re-enabling Accessibility; history survived.
+- Issue #22: implemented on `feat/launch-at-login` (`7c782d7`/`29c502d`/`85d2d4e`),
+  pushed; PR #26 open (closes #22). 55 tests pass from an isolated copy. Manual
+  checks passed except registration-failure handling (not exercised). Replacement
+  required re-enabling Accessibility; history survived.
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - Saved history is plaintext on disk and may contain secrets; encryption remains
