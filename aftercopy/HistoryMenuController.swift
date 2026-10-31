@@ -24,6 +24,10 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
      var onChooseShortcut: ((ShortcutConfiguration) -> Void)?
      var onClearHistory: (() -> Void)?
 
+    private let launchAtLoginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin(_:)), keyEquivalent: "")
+    private let loginStatusItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+    var onToggleLaunchAtLogin: ((Bool) -> Void)?
+
     override init() {
         super.init()
         menu.addItem(capturedItem)
@@ -52,6 +56,10 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
          menu.addItem(shortcutItem)
          clearHistoryItem.target = self
          menu.addItem(clearHistoryItem)
+         launchAtLoginItem.target = self
+         menu.addItem(launchAtLoginItem)
+         loginStatusItem.isHidden = true
+         menu.addItem(loginStatusItem)
          menu.addItem(NSMenuItem.separator())
          menu.addItem(NSMenuItem(title: "Quit aftercopy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
          menu.delegate = self
@@ -71,6 +79,16 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
             menu.insertItem(item, at: insertionIndex + offset)
             previewMenuItems.append(item)
         }
+    }
+
+    func updateLaunchAtLogin(registered: Bool, status: String?) {
+        launchAtLoginItem.state = registered ? .on : .off
+        loginStatusItem.title = status ?? ""
+        loginStatusItem.isHidden = status == nil
+    }
+
+    @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
+        onToggleLaunchAtLogin?(sender.state != .on)
     }
 
     func updateShortcut(_ configuration: ShortcutConfiguration, registrationStatus: Int32) {

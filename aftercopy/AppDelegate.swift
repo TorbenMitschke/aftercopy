@@ -17,6 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
      private let globalHotkey = GlobalHotkey()
      private let pasteCoordinator = PasteCoordinator()
      private let historyPersistence = HistoryPersistence()
+     private let loginItemManager = LoginItemManager()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App-hosted logic tests must not monitor the user's clipboard or own a shortcut.
@@ -70,6 +71,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
              self.clipboardMonitor?.resetBaseline()
              self.historyMenuController.render(store)
          }
+        historyMenuController.onToggleLaunchAtLogin = { [weak self] enabled in
+            guard let self else { return }
+            let previousState = self.loginItemManager.isRegistered
+            do {
+                try self.loginItemManager.setEnabled(enabled)
+                self.updateLaunchAtLogin()
+            } catch {
+                self.historyMenuController.updateLaunchAtLogin(
+                    registered: previousState, status: self.loginItemManager.statusMessage)
+            }
+        }
         historyMenuController.onBeginSession = { [weak self] destination in
             self?.pasteCoordinator.beginSession(destination: destination) ?? 0
         }
@@ -90,6 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         historyMenuController.onWillOpen = { [weak self] in
             self?.updatePastePermission()
             self?.clipboardMonitor?.captureIfChanged()
+            self?.updateLaunchAtLogin()
         }
         historyMenuController.onChooseShortcut = { [weak self] configuration in
             UserDefaults.standard.set(configuration.rawValue, forKey: ShortcutConfiguration.defaultsKey)
@@ -102,6 +115,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
          let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
          configureShortcut(configuration)
          updatePastePermission()
+         updateLaunchAtLogin()
          if let store = clipboardStore {
              historyMenuController.render(store)
          }
@@ -118,6 +132,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
              historyMenuController.updateStorageStatus("History: not saved")
          }
      }
+
+    private func updateLaunchAtLogin() {
+        historyMenuController.updateLaunchAtLogin(
+            registered: loginItemManager.isRegistered, status: loginItemManager.statusMessage)
+    }
 
     private func updatePastePermission() {
         historyMenuController.updatePastePermission(pasteCoordinator.permissionGranted)
