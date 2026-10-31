@@ -1,14 +1,9 @@
 # Progress
 
 ## Current task
-Issue #21 (bounded local persistence and Clear History) is **merged into `main`
-via PR #23 (`b255f19`) on 2026-10-31**; issue #21 is closed, and the feature and
-docs branches are deleted locally and remotely. All 50 automated tests pass and
-the user passed all six manual acceptance checklist steps on 2026-10-31. Next:
-implement issue #22 (installable Release app + Launch at Login) on
-`feat/launch-at-login` per the approved plan
-`docs/plans/launch-at-login-installable-release.md` (merged to `main` via PR #24,
-`a6f52a1`).
+Issue #22 implementation is on `feat/launch-at-login`: opt-in SMAppService
+registration, menu state/error guidance, pure mapping tests, and docs/SETUP.md.
+All 55 automated tests pass (50 existing + 5 new); the isolated Release build passes. User-confirmed manual checks passed for installed launch/history, copy-only and direct paste, login startup on/off, and external Settings refresh. Replacement preserved history; Accessibility was disabled and needed re-enabling for direct paste. Registration-failure handling was not exercised (no errors encountered).
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -44,13 +39,10 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Implement issue #22 on `feat/launch-at-login` (cut from `main` at `a6f52a1`)
-per the approved plan `docs/plans/launch-at-login-installable-release.md`:
-LoginItemManager (SMAppService) + Launch at Login menu toggle + AppDelegate
-wiring + same-task unit tests for the pure status mapping + `docs/SETUP.md`, then
-the plan's manual checklist on an installed Release app. Keep the tested app
-bundle stable; future rebuilds may require refreshing the Accessibility grant
-for this ad-hoc-signed development app.
+Prepare issue #22 for review with the manual results recorded in
+`docs/plans/launch-at-login-installable-release.md`. Registration-failure behavior
+remains manually untested; no registration errors occurred.
+Implementation is on `feat/launch-at-login`; no push or merge performed.
 
 ## Decisions
 - 2026-10-31: User directed push/PR/merge for #21. `feat/history-persistence-clear-history`
@@ -176,10 +168,9 @@ for this ad-hoc-signed development app.
 ## Open issues
 - Issue #21: merged via PR #23 (`b255f19`), closed. Manual acceptance checklist
   passed by the user on 2026-10-31 (all six steps); automated coverage: 50 tests.
-- Issue #22 (launch at login + installable Release): approved 2026-10-31, plan on
-  `main` at `docs/plans/launch-at-login-installable-release.md`; implementation not
-  started (awaits `feat/launch-at-login` branch; manual checklist for #22 pending
-  after that).
+- Issue #22: implemented on `feat/launch-at-login`; 55 tests pass. Manual checks
+  passed except registration-failure handling (not exercised). Replacement required
+  re-enabling Accessibility; history survived.
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - Saved history is plaintext on disk and may contain secrets; encryption remains
