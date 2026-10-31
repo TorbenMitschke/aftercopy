@@ -1,6 +1,6 @@
 # Bounded local persistence and Clear History — implementation plan
 
-Date: 2026-10-09. Status: **user-approved on 2026-10-09; implemented on `feat/history-persistence-clear-history`; manual acceptance checklist pending the user.**
+Date: 2026-10-09. Status: **user-approved on 2026-10-09; implemented on `feat/history-persistence-clear-history`; manual acceptance checklist passed by the user on 2026-10-31 (see implementation record below).**
 Branch: `feat/history-persistence-clear-history` (branched from `main` at `f229054`, the merged PR #20 state).
 Issue: [#21](https://github.com/TorbenMitschke/aftercopy/issues/21), created on plan approval; promotes the PARKING_LOT "Persistance" item. Issue #19 closed as complete after PR #20 merged.
 
@@ -90,7 +90,28 @@ Approval authorizes: (a) implementing this plan on `feat/history-persistence-cle
   5 new ClipboardStore), run from an isolated tracked-file copy with separate
   DerivedData so the working app bundle and its Accessibility grant stay intact.
   No clipboard contents are logged; only counts, error metadata, and paths.
-- Manual acceptance checklist above is pending: this session cannot launch or
-  interact with the GUI app. The user runs Cmd+R in Xcode and reports results per
-  step; original-app termination and clipboard replacement during pending selection
-  remain covered by pure policy tests from the #19 iteration.
+- Manual acceptance checklist **passed by the user on 2026-10-31** (Cmd+R in Xcode
+  on `feat/history-persistence-clear-history`), all six steps:
+  1. Restore on launch: copied entries visible (`Captured: N`) before first capture
+     after quit/relaunch; direct paste of a restored entry worked when the
+     Accessibility grant was valid (step 1f passed early in the session; later
+     rebuilds again showed the copy-only fallback — the known ad-hoc-signing caveat).
+  2. 100-entry cap: `Captured: 100`, oldest evicted FIFO, disk file matches
+     (first retained `cap-test-entry-019`, last `cap-test-extra`), menu caps at ten.
+  3. Clear History: count reset to 0, item disabled, system clipboard untouched
+     (`pbpaste` still printed the marker), unchanged clipboard not recaptured
+     (count stayed 0 after 2s), disk file removed, new captures work, and the
+     cleared state survived quit/relaunch (`Captured: 2` of post-clear entries only).
+  4. Corrupt file: launched empty with "History: file unreadable" status, bad file
+     quarantined as `history.json.corrupt-1793472441` and preserved, fresh
+     `history.json` written on next capture, capture/recall kept working.
+  5. Read-only storage dir: in-memory capture worked, "History: not saved" status
+     shown, no new file written while read-only; `log show` contained no clipboard
+     text (grep count 0). Write permission restored afterwards (755).
+  6. Repeated quit/relaunch: restored entries stable, same order, no duplicates.
+  - Testing note recorded for future runs: copy-pasting commands from chat into
+    Terminal puts the instruction text itself on the clipboard (and into history);
+    type commands instead when testing clipboard-sensitive behavior.
+  - Original-app termination and clipboard replacement during pending selection
+    remain covered by pure policy tests from the #19 iteration, not by this
+    interactive checklist.

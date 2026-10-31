@@ -1,10 +1,14 @@
 # Progress
 
 ## Current task
-Implement issue #21 (bounded local persistence and Clear History) per the
-user-approved `docs/plans/history-persistence-clear-history.md` on branch
-`feat/history-persistence-clear-history`. Implementation and automated checks are
-complete; the interactive manual acceptance checklist awaits the user.
+Issue #21 (bounded local persistence and Clear History) per the user-approved
+`docs/plans/history-persistence-clear-history.md` on branch
+`feat/history-persistence-clear-history`: implementation, automated checks (50
+tests), and the interactive manual acceptance checklist are all complete — the
+user passed all six checklist steps on 2026-10-31. Push/PR/merge remain
+user-directed actions. Next approved iteration: issue #22 (installable Release
+app + Launch at Login), plan `docs/plans/launch-at-login-installable-release.md`
+on `docs/launch-at-login-plan`.
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -39,29 +43,37 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-The user runs the manual acceptance checklist in
-`docs/plans/history-persistence-clear-history.md` (Cmd+R in Xcode): copy → quit →
-relaunch shows restored history before first capture; paste a restored entry;
-clear → relaunch stays empty and does not recapture the unchanged clipboard; corrupt
-file launches empty and preserves the file; read-only storage dir keeps in-memory
-recall with a status line. After the user reports results, push/PR/merge remain
-user-directed actions. Keep the tested app bundle stable; future rebuilds may
-require refreshing the Accessibility grant for this ad-hoc-signed development app.
-
-Next iteration proposal (not approved, no issue, no code): installable Release
-app + opt-in Launch at Login via `SMAppService`, planned in
-`docs/plans/launch-at-login-installable-release.md` on branch
-`docs/launch-at-login-plan` (`cd21c54`). Awaits user approval; on approval it
-gets a scoped GitHub issue (promoting the PARKING_LOT "Launch at login" item)
-and a `feat/launch-at-login` branch cut from `main` after #21 merges.
+#21 is complete pending user-directed push/PR/merge of
+`feat/history-persistence-clear-history`: the user passed all six manual
+acceptance checklist steps on 2026-10-31 (recorded in the plan's implementation
+record). Then implement issue #22 (installable Release app + Launch at Login,
+plan `docs/plans/launch-at-login-installable-release.md` on
+`docs/launch-at-login-plan`, approved 2026-10-31) on `feat/launch-at-login`.
+Keep the tested app bundle stable; future rebuilds may require refreshing the
+Accessibility grant for this ad-hoc-signed development app.
 
 ## Decisions
+- 2026-10-31: User ran the #21 manual acceptance checklist (Cmd+R on
+  `feat/history-persistence-clear-history`) and passed all six steps: restore on
+  launch, 100-cap/FIFO eviction, Clear History (clipboard untouched, no recapture,
+  persists across restart), corrupt-file quarantine + status line, read-only dir
+  (in-memory + "not saved", no clipboard text in logs), repeated relaunch
+  stability. Results recorded in the plan's implementation record. Testing note:
+  copy-pasting commands from chat into Terminal pollutes the clipboard (the
+  instruction text itself gets captured) — type commands when testing
+  clipboard-sensitive behavior. Later rebuilds again showed the copy-only paste
+  fallback, consistent with the known ad-hoc-signing Accessibility caveat.
+- 2026-10-31: User approved the launch-at-login plan as proposed (opt-in default,
+  menu next to Clear History, SETUP.md in the same iteration). Issue #22 created
+  ("feat: installable Release app and launch at login (SMAppService)", label
+  feature); implementation to go on `feat/launch-at-login`, stacked on the #21
+  branch until #21 merges. No code written yet.
 - 2026-10-31: Analysis session summarized state and proposed the next iteration
   (installable Release app + Launch at Login). Plan written to
   `docs/plans/launch-at-login-installable-release.md` and committed as `cd21c54`
   on `docs/launch-at-login-plan`, deliberately off the #21 branch so the pending
-  push/PR stays scoped to issue #21. Docs-only change; no feature code, no issue,
-  no build-setting change. Approval still pending.
+  push/PR stays scoped to issue #21. Docs-only change; no feature code, no build
+  settings changed.
 - 2026-10-09: User approved the persistence + Clear History plan as proposed
   (100-entry cap, plaintext disk history enabled by default, Clear History without
   a confirmation dialog) and authorized creating the scoped issue and closing #19.
@@ -157,9 +169,13 @@ and a `feat/launch-at-login` branch cut from `main` after #21 merges.
   Cmd+R before merge.
 
 ## Open issues
-- Issue #21's manual acceptance checklist (persistence + Clear History) has not
-  been run yet; this session cannot launch the GUI app. Automated coverage: 50
-  tests pass, including isolated-storage persistence tests.
+- Issue #21: manual acceptance checklist passed by the user on 2026-10-31 (all six
+  steps); automated coverage: 50 tests pass, including isolated-storage persistence
+  tests. Only user-directed push/PR/merge of `feat/history-persistence-clear-history`
+  remains.
+- Issue #22 (launch at login + installable Release): approved 2026-10-31, plan on
+  `docs/launch-at-login-plan`; implementation not started (awaits
+  `feat/launch-at-login` branch; manual checklist for #22 pending after that).
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - Saved history is plaintext on disk and may contain secrets; encryption remains
