@@ -1,14 +1,14 @@
 # Progress
 
 ## Current task
-Issue #21 (bounded local persistence and Clear History) per the user-approved
-`docs/plans/history-persistence-clear-history.md` on branch
-`feat/history-persistence-clear-history`: implementation, automated checks (50
-tests), and the interactive manual acceptance checklist are all complete — the
-user passed all six checklist steps on 2026-10-31. Push/PR/merge remain
-user-directed actions. Next approved iteration: issue #22 (installable Release
-app + Launch at Login), plan `docs/plans/launch-at-login-installable-release.md`
-on `docs/launch-at-login-plan`.
+Issue #21 (bounded local persistence and Clear History) is **merged into `main`
+via PR #23 (`b255f19`) on 2026-10-31**; issue #21 is closed, and the feature and
+docs branches are deleted locally and remotely. All 50 automated tests pass and
+the user passed all six manual acceptance checklist steps on 2026-10-31. Next:
+implement issue #22 (installable Release app + Launch at Login) on
+`feat/launch-at-login` per the approved plan
+`docs/plans/launch-at-login-installable-release.md` (merged to `main` via PR #24,
+`a6f52a1`).
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -22,17 +22,18 @@ to the original PID when permission/focus/modifiers/clipboard allow; otherwise i
 retains copy-only behavior and shows a reason. No permission was granted or paste
 event emitted by tests/the agent.
 
-On `feat/history-persistence-clear-history` (issue #21, created on plan approval):
-`8e990f5` adds HistoryPersistence (versioned plaintext JSON at
-`~/Library/Application Support/aftercopy/history.json`, atomic saves, quarantine of
-corrupt/unsupported/oversized files, 64k-character per-entry disk limit, 16 MiB
-file limit) with isolated-storage tests; `0ea1628` caps ClipboardStore at 100
-entries with clear/restore and tests; `a6ac9bc` adds the Clear History menu action
-and storage status line; `0edfa4e` wires restore-on-launch, save-on-capture, and
-Clear History (store → disk → monitor baseline reset) in AppDelegate. All 50 tests
-pass, run from an isolated tracked-file copy with separate DerivedData so the
-working app bundle and its Accessibility grant stay intact. No clipboard contents
-are logged. Nothing is pushed; no PR is open.
+Issue #21 (created on plan approval) shipped on `feat/history-persistence-clear-history`
+and merged via PR #23 (`b255f19`): `8e990f5` adds HistoryPersistence (versioned
+plaintext JSON at `~/Library/Application Support/aftercopy/history.json`, atomic
+saves, quarantine of corrupt/unsupported/oversized files, 64k-character per-entry
+disk limit, 16 MiB file limit) with isolated-storage tests; `0ea1628` caps
+ClipboardStore at 100 entries with clear/restore and tests; `a6ac9bc` adds the
+Clear History menu action and storage status line; `0edfa4e` wires
+restore-on-launch, save-on-capture, and Clear History (store → disk → monitor
+baseline reset) in AppDelegate. All 50 tests pass, run from an isolated
+tracked-file copy with separate DerivedData so the working app bundle and its
+Accessibility grant stay intact. No clipboard contents are logged. The user ran
+the six-step manual acceptance checklist on 2026-10-31 and passed all steps.
 
 The user confirmed original menu arrows work. Direct paste initially stayed copy-only
 although Settings showed Accessibility enabled. macOS logs for the restarted process
@@ -43,16 +44,20 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-#21 is complete pending user-directed push/PR/merge of
-`feat/history-persistence-clear-history`: the user passed all six manual
-acceptance checklist steps on 2026-10-31 (recorded in the plan's implementation
-record). Then implement issue #22 (installable Release app + Launch at Login,
-plan `docs/plans/launch-at-login-installable-release.md` on
-`docs/launch-at-login-plan`, approved 2026-10-31) on `feat/launch-at-login`.
-Keep the tested app bundle stable; future rebuilds may require refreshing the
-Accessibility grant for this ad-hoc-signed development app.
+Implement issue #22 on `feat/launch-at-login` (cut from `main` at `a6f52a1`)
+per the approved plan `docs/plans/launch-at-login-installable-release.md`:
+LoginItemManager (SMAppService) + Launch at Login menu toggle + AppDelegate
+wiring + same-task unit tests for the pure status mapping + `docs/SETUP.md`, then
+the plan's manual checklist on an installed Release app. Keep the tested app
+bundle stable; future rebuilds may require refreshing the Accessibility grant
+for this ad-hoc-signed development app.
 
 ## Decisions
+- 2026-10-31: User directed push/PR/merge for #21. `feat/history-persistence-clear-history`
+  pushed, PR #23 created (closes #21) and merged as `b255f19`; issue #21 auto-closed;
+  feature branch deleted locally and remotely. The approved #22 plan branch
+  `docs/launch-at-login-plan` merged via docs PR #24 (`a6f52a1`) so the plan lives
+  on `main`; local `main` matches `origin/main` and is clean.
 - 2026-10-31: User ran the #21 manual acceptance checklist (Cmd+R on
   `feat/history-persistence-clear-history`) and passed all six steps: restore on
   launch, 100-cap/FIFO eviction, Clear History (clipboard untouched, no recapture,
@@ -169,13 +174,12 @@ Accessibility grant for this ad-hoc-signed development app.
   Cmd+R before merge.
 
 ## Open issues
-- Issue #21: manual acceptance checklist passed by the user on 2026-10-31 (all six
-  steps); automated coverage: 50 tests pass, including isolated-storage persistence
-  tests. Only user-directed push/PR/merge of `feat/history-persistence-clear-history`
-  remains.
+- Issue #21: merged via PR #23 (`b255f19`), closed. Manual acceptance checklist
+  passed by the user on 2026-10-31 (all six steps); automated coverage: 50 tests.
 - Issue #22 (launch at login + installable Release): approved 2026-10-31, plan on
-  `docs/launch-at-login-plan`; implementation not started (awaits
-  `feat/launch-at-login` branch; manual checklist for #22 pending after that).
+  `main` at `docs/plans/launch-at-login-installable-release.md`; implementation not
+  started (awaits `feat/launch-at-login` branch; manual checklist for #22 pending
+  after that).
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - Saved history is plaintext on disk and may contain secrets; encryption remains
