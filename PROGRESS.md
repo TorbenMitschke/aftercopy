@@ -48,7 +48,20 @@ recall with a status line. After the user reports results, push/PR/merge remain
 user-directed actions. Keep the tested app bundle stable; future rebuilds may
 require refreshing the Accessibility grant for this ad-hoc-signed development app.
 
+Next iteration proposal (not approved, no issue, no code): installable Release
+app + opt-in Launch at Login via `SMAppService`, planned in
+`docs/plans/launch-at-login-installable-release.md` on branch
+`docs/launch-at-login-plan` (`cd21c54`). Awaits user approval; on approval it
+gets a scoped GitHub issue (promoting the PARKING_LOT "Launch at login" item)
+and a `feat/launch-at-login` branch cut from `main` after #21 merges.
+
 ## Decisions
+- 2026-10-31: Analysis session summarized state and proposed the next iteration
+  (installable Release app + Launch at Login). Plan written to
+  `docs/plans/launch-at-login-installable-release.md` and committed as `cd21c54`
+  on `docs/launch-at-login-plan`, deliberately off the #21 branch so the pending
+  push/PR stays scoped to issue #21. Docs-only change; no feature code, no issue,
+  no build-setting change. Approval still pending.
 - 2026-10-09: User approved the persistence + Clear History plan as proposed
   (100-entry cap, plaintext disk history enabled by default, Clear History without
   a confirmation dialog) and authorized creating the scoped issue and closing #19.
