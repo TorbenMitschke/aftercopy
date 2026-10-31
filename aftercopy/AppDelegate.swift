@@ -13,9 +13,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var statusItem: NSStatusItem?
     private var clipboardMonitor: ClipboardMonitor?
     private var clipboardStore: ClipboardStore?
-    private let historyMenuController = HistoryMenuController()
-    private let globalHotkey = GlobalHotkey()
-    private let pasteCoordinator = PasteCoordinator()
+     private let historyMenuController = HistoryMenuController()
+     private let globalHotkey = GlobalHotkey()
+     private let pasteCoordinator = PasteCoordinator()
+     private let historyPersistence = HistoryPersistence()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App-hosted logic tests must not monitor the user's clipboard or own a shortcut.
@@ -38,14 +39,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         clipboardMonitor = ClipboardMonitor()
         
-        clipboardStore = ClipboardStore()
-        
-        item.menu = historyMenuController.menu
-        clipboardMonitor?.onCapture = { [weak self] capturedItem in
-            guard let self, let store = self.clipboardStore else { return }
-            store.add(capturedItem)
-            self.historyMenuController.render(store)
-        }
+         clipboardStore = ClipboardStore()
+
+         var storageStatusMessage: String?
+         switch historyPersistence.load() {
+         case .restored(let items):
+             clipboardStore?.restore(items)
+         case .empty:
+             break
+         case .unavailable:
+             storageStatusMessage = "History: file unreadable"
+         }
+
+         item.menu = historyMenuController.menu
+         clipboardMonitor?.onCapture = { [weak self] capturedItem in
+             guard let self, let store = self.clipboardStore else { return }
+             store.add(capturedItem)
+             self.historyMenuController.render(store)
+             self.saveHistory()
+         }
+         historyMenuController.onClearHistory = { [weak self] in
+             guard let self, let store = self.clipboardStore else { return }
+             store.clear()
+             do {
+                 try self.historyPersistence.clear()
+                 self.historyMenuController.updateStorageStatus(nil)
+             } catch {
+                 self.historyMenuController.updateStorageStatus("History: not cleared")
+             }
+             self.clipboardMonitor?.resetBaseline()
+             self.historyMenuController.render(store)
+         }
         historyMenuController.onBeginSession = { [weak self] destination in
             self?.pasteCoordinator.beginSession(destination: destination) ?? 0
         }
@@ -75,11 +99,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self, let button = self.statusItem?.button else { return }
             self.historyMenuController.present(from: button)
         }
-        let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
-        configureShortcut(configuration)
-        updatePastePermission()
-        clipboardMonitor?.start()
-    }
+         let configuration = ShortcutConfiguration.restored(from: UserDefaults.standard.string(forKey: ShortcutConfiguration.defaultsKey))
+         configureShortcut(configuration)
+         updatePastePermission()
+         if let store = clipboardStore {
+             historyMenuController.render(store)
+         }
+         historyMenuController.updateStorageStatus(storageStatusMessage)
+         clipboardMonitor?.start()
+     }
+
+     private func saveHistory() {
+         guard let store = clipboardStore else { return }
+         do {
+             try historyPersistence.save(store.allItems)
+             historyMenuController.updateStorageStatus(nil)
+         } catch {
+             historyMenuController.updateStorageStatus("History: not saved")
+         }
+     }
 
     private func updatePastePermission() {
         historyMenuController.updatePastePermission(pasteCoordinator.permissionGranted)

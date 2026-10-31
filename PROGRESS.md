@@ -1,19 +1,38 @@
 # Progress
 
 ## Current task
-Implement #19's user-approved direct-paste and numbered-shortcut extension per
-`docs/plans/keyboard-history-direct-paste.md`. Implementation and eight-step interactive manual verification complete; ready for branch review.
+Issue #21 (bounded local persistence and Clear History) per the user-approved
+`docs/plans/history-persistence-clear-history.md` on branch
+`feat/history-persistence-clear-history`: implementation, automated checks (50
+tests), and the interactive manual acceptance checklist are all complete — the
+user passed all six checklist steps on 2026-10-31. Push/PR/merge remain
+user-directed actions. Next approved iteration: issue #22 (installable Release
+app + Launch at Login), plan `docs/plans/launch-at-login-installable-release.md`
+on `docs/launch-at-login-plan`.
 
 ## State
-Branch `feat/keyboard-history-menu`: `134257f` disables App Sandbox in Debug/Release
-with explicit user approval; `4e750ba` adds native ⌘1–⌘9/⌘0 menu equivalents,
-PasteCoordinator, pure PasteEligibility, destination sessions, asynchronous bounded
-readiness, and the explicit Enable Direct Paste permission action. Selection copies
-then posts once to the original PID when permission/focus/modifiers/clipboard allow;
-otherwise it retains copy-only behavior and shows a reason. All 34 tests pass;
-Release build succeeds; Debug and Release codesign output has no Sandbox entitlement.
-No permission was granted or paste event emitted by tests/the agent. #19 scope is
-updated. No dependency/check-command changes; nothing pushed and issue still open.
+Issue #19's keyboard recall plus direct-paste extension is implemented and merged
+into `main` through PR #20 (`f229054`); local `main` matches `origin/main` and is
+clean, and `feat/keyboard-history-menu` is deleted locally and remotely. Issue #19
+is closed as complete. `134257f` disables App Sandbox in Debug/Release with explicit
+user approval; `4e750ba` adds native ⌘1–⌘9/⌘0 menu equivalents, PasteCoordinator,
+pure PasteEligibility, destination sessions, asynchronous bounded readiness, and
+the explicit Enable Direct Paste permission action. Selection copies then posts once
+to the original PID when permission/focus/modifiers/clipboard allow; otherwise it
+retains copy-only behavior and shows a reason. No permission was granted or paste
+event emitted by tests/the agent.
+
+On `feat/history-persistence-clear-history` (issue #21, created on plan approval):
+`8e990f5` adds HistoryPersistence (versioned plaintext JSON at
+`~/Library/Application Support/aftercopy/history.json`, atomic saves, quarantine of
+corrupt/unsupported/oversized files, 64k-character per-entry disk limit, 16 MiB
+file limit) with isolated-storage tests; `0ea1628` caps ClipboardStore at 100
+entries with clear/restore and tests; `a6ac9bc` adds the Clear History menu action
+and storage status line; `0edfa4e` wires restore-on-launch, save-on-capture, and
+Clear History (store → disk → monitor baseline reset) in AppDelegate. All 50 tests
+pass, run from an isolated tracked-file copy with separate DerivedData so the
+working app bundle and its Accessibility grant stay intact. No clipboard contents
+are logged. Nothing is pushed; no PR is open.
 
 The user confirmed original menu arrows work. Direct paste initially stayed copy-only
 although Settings showed Accessibility enabled. macOS logs for the restarted process
@@ -24,11 +43,57 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Keep the tested app bundle stable while using the granted permission. Future rebuilds
-may require refreshing the grant for this ad-hoc-signed development app. Preserve the
-manual results in the plan for branch review; push/PR/merge remain user-directed actions.
+#21 is complete pending user-directed push/PR/merge of
+`feat/history-persistence-clear-history`: the user passed all six manual
+acceptance checklist steps on 2026-10-31 (recorded in the plan's implementation
+record). Then implement issue #22 (installable Release app + Launch at Login,
+plan `docs/plans/launch-at-login-installable-release.md` on
+`docs/launch-at-login-plan`, approved 2026-10-31) on `feat/launch-at-login`.
+Keep the tested app bundle stable; future rebuilds may require refreshing the
+Accessibility grant for this ad-hoc-signed development app.
 
 ## Decisions
+- 2026-10-31: User ran the #21 manual acceptance checklist (Cmd+R on
+  `feat/history-persistence-clear-history`) and passed all six steps: restore on
+  launch, 100-cap/FIFO eviction, Clear History (clipboard untouched, no recapture,
+  persists across restart), corrupt-file quarantine + status line, read-only dir
+  (in-memory + "not saved", no clipboard text in logs), repeated relaunch
+  stability. Results recorded in the plan's implementation record. Testing note:
+  copy-pasting commands from chat into Terminal pollutes the clipboard (the
+  instruction text itself gets captured) — type commands when testing
+  clipboard-sensitive behavior. Later rebuilds again showed the copy-only paste
+  fallback, consistent with the known ad-hoc-signing Accessibility caveat.
+- 2026-10-31: User approved the launch-at-login plan as proposed (opt-in default,
+  menu next to Clear History, SETUP.md in the same iteration). Issue #22 created
+  ("feat: installable Release app and launch at login (SMAppService)", label
+  feature); implementation to go on `feat/launch-at-login`, stacked on the #21
+  branch until #21 merges. No code written yet.
+- 2026-10-31: Analysis session summarized state and proposed the next iteration
+  (installable Release app + Launch at Login). Plan written to
+  `docs/plans/launch-at-login-installable-release.md` and committed as `cd21c54`
+  on `docs/launch-at-login-plan`, deliberately off the #21 branch so the pending
+  push/PR stays scoped to issue #21. Docs-only change; no feature code, no build
+  settings changed.
+- 2026-10-09: User approved the persistence + Clear History plan as proposed
+  (100-entry cap, plaintext disk history enabled by default, Clear History without
+  a confirmation dialog) and authorized creating the scoped issue and closing #19.
+  Issue #21 created; #19 closed as complete after PR #20 merged at `f229054`.
+- 2026-10-09: Persistence implemented per the approved plan with no deviations:
+  versioned JSON envelope, atomic save after each accepted mutation, immediate
+  restore before monitor start and first render, corrupt/unsupported/oversized
+  files quarantined and never silently overwritten, oversized entries kept in
+  memory but excluded from disk, Clear History ordered store → disk → monitor
+  baseline so the unchanged clipboard is not recaptured and the system clipboard
+  is untouched. No clipboard contents in logs; only counts, error metadata, paths.
+- 2026-10-09: PR #20 merged keyboard recall and direct paste into `main` at
+  `f229054`; `feat/keyboard-history-menu` deleted locally and remotely. PROGRESS.md
+  reconciled with the merged state. Original-app termination and clipboard
+  replacement during pending selection have pure policy test coverage without a
+  separate manual result.
+- 2026-10-09: Planning session for bounded local persistence and Clear History.
+  No persistence issue existed; the PARKING_LOT "Persistance" item was the source.
+  Plan written on `feat/history-persistence-clear-history`. No feature code or
+  build settings were changed during planning.
 - 2026-10-09: User passed all eight interactive manual checks. No implementation
   changes were needed. Record only the scenarios actually tested; original-app
   termination and clipboard replacement during pending selection remain covered
@@ -104,9 +169,17 @@ manual results in the plan for branch review; push/PR/merge remain user-directed
   Cmd+R before merge.
 
 ## Open issues
-- No remaining failure reported for basic direct paste after permission recovery.
+- Issue #21: manual acceptance checklist passed by the user on 2026-10-31 (all six
+  steps); automated coverage: 50 tests pass, including isolated-storage persistence
+  tests. Only user-directed push/PR/merge of `feat/history-persistence-clear-history`
+  remains.
+- Issue #22 (launch at login + installable Release): approved 2026-10-31, plan on
+  `docs/launch-at-login-plan`; implementation not started (awaits
+  `feat/launch-at-login` branch; manual checklist for #22 pending after that).
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
-- All eight interactive acceptance steps passed. Original-app termination and
+- Saved history is plaintext on disk and may contain secrets; encryption remains
+  parked (PARKING_LOT).
+- All eight #19 interactive acceptance steps passed. Original-app termination and
   clipboard replacement during pending selection were not separately exercised
   in this interactive checklist; those conditions have pure policy test coverage.

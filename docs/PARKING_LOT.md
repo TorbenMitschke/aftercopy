@@ -10,6 +10,7 @@ Move items to a GitHub Issue when ready to work on them
 
 ## Promoted to an issue
 - Global hotkey and direct-paste/numbered-selection extension: #19, implemented on `feat/keyboard-history-menu`; all eight interactive acceptance steps user-confirmed passed; remaining verification limits are recorded in the plan. Current plan: `docs/plans/keyboard-history-direct-paste.md`.
+- Bounded local history persistence and Clear History: #21, planned in `docs/plans/history-persistence-clear-history.md` and implemented on `feat/history-persistence-clear-history` (versioned plaintext JSON, 100-entry cap, atomic saves, clear across memory/disk/restart). SQLite migration remains parked.
 
 ## UI / UX
 - [ ] Notch-aware UI (custom window positioning near MacBook Pro notch)
@@ -20,7 +21,7 @@ Move items to a GitHub Issue when ready to work on them
 - [ ] Status bar menu items with images like "Quit Docker Desktop"
 
 ## Data
-- [ ] Persistance (JSON -> SQLite)
+- [ ] Persistance (JSON done in #21; SQLite migration still parked)
 - [ ] Rich types (images, RTF, HTML, file URLs)
 
 ## Operations

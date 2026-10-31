@@ -12,23 +12,28 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
     private var isPresenting = false
     private var openingDestination: NSRunningApplication?
     private var selectionSession: UInt64?
-    private let pasteStatusItem = NSMenuItem(title: "Selection: copy only — enable Accessibility", action: nil, keyEquivalent: "")
-    private let fallbackStatusItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-    var onBeginSession: ((NSRunningApplication?) -> UInt64)?
-    var onSelect: ((String, UInt64) -> Void)?
-    var onMenuClosed: ((UInt64) -> Void)?
-    var onEnableDirectPaste: (() -> Void)?
-    var onWillOpen: (() -> Void)?
-    var onChooseShortcut: ((ShortcutConfiguration) -> Void)?
+     private let pasteStatusItem = NSMenuItem(title: "Selection: copy only — enable Accessibility", action: nil, keyEquivalent: "")
+     private let fallbackStatusItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+     private let storageStatusItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+     private let clearHistoryItem = NSMenuItem(title: "Clear History", action: #selector(clearHistory(_:)), keyEquivalent: "")
+     var onBeginSession: ((NSRunningApplication?) -> UInt64)?
+     var onSelect: ((String, UInt64) -> Void)?
+     var onMenuClosed: ((UInt64) -> Void)?
+     var onEnableDirectPaste: (() -> Void)?
+     var onWillOpen: (() -> Void)?
+     var onChooseShortcut: ((ShortcutConfiguration) -> Void)?
+     var onClearHistory: (() -> Void)?
 
     override init() {
         super.init()
         menu.addItem(capturedItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(bottomSeparator)
-        menu.addItem(pasteStatusItem)
-        menu.addItem(fallbackStatusItem)
-        fallbackStatusItem.isHidden = true
+         menu.addItem(pasteStatusItem)
+         menu.addItem(fallbackStatusItem)
+         fallbackStatusItem.isHidden = true
+         menu.addItem(storageStatusItem)
+         storageStatusItem.isHidden = true
         let enablePasteItem = NSMenuItem(title: "Enable Direct Paste…", action: #selector(enableDirectPaste(_:)), keyEquivalent: "")
         enablePasteItem.target = self
         menu.addItem(enablePasteItem)
@@ -42,16 +47,19 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
             shortcutSubmenu.addItem(item)
             shortcutItems.append(item)
         }
-        let shortcutItem = NSMenuItem(title: "Shortcut", action: nil, keyEquivalent: "")
-        shortcutItem.submenu = shortcutSubmenu
-        menu.addItem(shortcutItem)
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit aftercopy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        menu.delegate = self
-    }
+         let shortcutItem = NSMenuItem(title: "Shortcut", action: nil, keyEquivalent: "")
+         shortcutItem.submenu = shortcutSubmenu
+         menu.addItem(shortcutItem)
+         clearHistoryItem.target = self
+         menu.addItem(clearHistoryItem)
+         menu.addItem(NSMenuItem.separator())
+         menu.addItem(NSMenuItem(title: "Quit aftercopy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+         menu.delegate = self
+     }
 
-    func render(_ store: ClipboardStore) {
-        capturedItem.title = "Captured: \(store.numberOfItems)"
+     func render(_ store: ClipboardStore) {
+         capturedItem.title = "Captured: \(store.numberOfItems)"
+         clearHistoryItem.isEnabled = store.numberOfItems > 0
         previewMenuItems.forEach { menu.removeItem($0) }
         previewMenuItems.removeAll()
         let insertionIndex = menu.index(of: bottomSeparator)
@@ -108,10 +116,19 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
         pasteStatusItem.title = granted ? "Selection: paste" : "Selection: copy only — enable Accessibility"
     }
 
-    func reportPasteFallback(_ reason: String?) {
-        fallbackStatusItem.title = reason.map { "Last selection: \($0)" } ?? ""
-        fallbackStatusItem.isHidden = reason == nil
-    }
+     func reportPasteFallback(_ reason: String?) {
+         fallbackStatusItem.title = reason.map { "Last selection: \($0)" } ?? ""
+         fallbackStatusItem.isHidden = reason == nil
+     }
+
+     func updateStorageStatus(_ message: String?) {
+         storageStatusItem.title = message ?? ""
+         storageStatusItem.isHidden = message == nil
+     }
+
+     @objc private func clearHistory(_ sender: NSMenuItem) {
+         onClearHistory?()
+     }
 
     @objc private func selectHistoryItem(_ sender: NSMenuItem) {
         guard let text = sender.representedObject as? String, let selectionSession else { return }
