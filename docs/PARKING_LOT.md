@@ -25,7 +25,7 @@ Move items to a GitHub Issue when ready to work on them
 - [ ] Rich types (images, RTF, HTML, file URLs)
 
 ## Operations
-- [ ] Launch at login
+- [x] Launch at login (#22; implemented on feat/launch-at-login)
 - [ ] Logging strategy
 - [ ] Code signing / notarization
 

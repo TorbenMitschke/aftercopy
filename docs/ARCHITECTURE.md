@@ -113,7 +113,7 @@ NSPasteboard does not post system notifications when the clipboard changes. Poll
 ## Verification boundary
 
 XCTest covers store/filter, shortcut preferences, numbered mapping, pure paste
-eligibility, and history persistence (50 tests). App-hosted tests skip live capture
+eligibility, history persistence, and login-item status mapping (55 tests). App-hosted tests skip live capture
 and hotkey registration; tests do not grant permission, activate another app, post
 events, or touch the production history path (persistence tests use isolated
 temporary storage). Native menu navigation, permission, focus, actual paste,
@@ -126,11 +126,18 @@ the plan, including permission fallback/recovery, timeout, cancellation, and foc
 changes. Original-app termination and clipboard replacement during pending selection
 were not separately checked manually; pure policy tests cover those conditions.
 Persistence and Clear History (issue #21) are covered by pure tests; their manual
-acceptance checklist in `docs/plans/history-persistence-clear-history.md` is pending
-the user. The Release build passes and Debug/Release Sandbox entitlement absence was
+acceptance checklist in `docs/plans/history-persistence-clear-history.md` passed
+all six steps on 2026-10-31. The Release build passes and Debug/Release Sandbox entitlement absence was
 inspected with codesign.
 
 Ad-hoc development rebuilds may leave the displayed Accessibility grant out of
 sync with the current app identity. In the observed recovery, removing/re-adding
 the current Debug app and launching without rebuilding restored direct paste.
 Keep runtime permission checks; no bypass or automatic permission reset is used.
+
+### LoginItemManager / LoginItemState
+- Wraps SMAppService.mainApp with explicit opt-in registration only.
+- Pure LoginItemState maps status to checkmark and guidance, covered by unit tests.
+- AppDelegate refreshes the menu state on opening; registration errors remain until retry or status change.
+- Approval-required selection opens Login Items. Tests never modify real login items.
+- Installed Release behavior uses the issue #22 manual checklist.

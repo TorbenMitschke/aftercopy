@@ -1,6 +1,6 @@
 # Installable Release app + Launch at Login — implementation plan
 
-Date: 2026-10-31. Status: **proposal only; no implementation approved.**
+Date: 2026-10-31. Status: **approved 2026-10-31; issue #22 implemented; automated tests pass.**
 
 Plan branch: `docs/launch-at-login-plan` (kept off `feat/history-persistence-clear-history`
 so the pending #21 push/PR stays clean). On approval, implementation goes on
@@ -17,8 +17,8 @@ The user installs a Release build of aftercopy as a regular app (e.g.
 `/Applications/aftercopy.app`), launches it from Finder instead of Xcode, and
 can opt in to starting automatically at login via a "Launch at Login" menu
 toggle. History survives restarts (persistence from #21), and the installed app
-keeps a stable bundle path and identity, so the Accessibility grant for direct
-paste is granted once and stays valid.
+keeps a stable bundle path and identity. Ad-hoc rebuilds may still require refreshing the Accessibility
+grant for direct paste.
 
 ## Scope decisions (proposed — confirm or adjust at approval)
 
@@ -28,8 +28,8 @@ paste is granted once and stays valid.
    from Finder, grant Accessibility once for the installed bundle, and the
    replace-on-update procedure (quit → replace `.app` → relaunch). Documents
    the known ad-hoc-signing caveat: a rebuild or relocation can require
-   refreshing the Accessibility entry; a stable install path is what makes the
-   grant stick.
+   refreshing the Accessibility entry; a stable install path avoids unnecessary identity changes but cannot guarantee
+   permission retention across ad-hoc rebuilds.
 2. **Login item toggle via `SMAppService`.** New `LoginItemManager.swift`
    (one class per file, `import ServiceManagement`): wraps
    `SMAppService.mainApp`, exposes `isRegistered` and
@@ -109,9 +109,8 @@ pure mapping takes `SMAppService.Status` values as input.
   each change; remove the login item externally in System Settings → next menu
   open shows it unchecked.
 - Replace `/Applications/aftercopy.app` with a newer build (quit → replace →
-  relaunch): works, history preserved, Accessibility grant still valid because
-  path and signing are unchanged.
-- Failure path (e.g. bundle temporarily moved out of `/Applications`): toggle
+  relaunch): works, history preserved, check Accessibility; refresh the grant if the ad-hoc signature changed.
+- Failure path (if macOS rejects registration): toggle
   shows a status message, state unchanged, menu stays usable.
 
 ## Open decisions for approval
@@ -128,3 +127,30 @@ Approval authorizes: (a) implementing this plan on `feat/launch-at-login`,
 (b) creating the one scoped GitHub issue, and (c) updating PARKING_LOT and
 PROGRESS.md. No feature code, issue, push, merge, or build-setting change
 happens before approval.
+
+## Implementation notes
+
+Approval is recorded in PROGRESS.md. Approval-required status is unchecked and
+clicking opens Login Items instead of registering an already registered service.
+A stable path cannot guarantee Accessibility retention across ad-hoc rebuilds.
+Moving the app alone is not a guaranteed registration failure; verify rejection
+only when reproducible.
+
+Automated result: 55 tests passed, including five LoginItemState tests. Existing
+persistence tests emit actor-isolation warnings. Manual results are recorded below. No login registration or Accessibility changes were
+performed by the agent.
+
+## Manual verification results (user-confirmed, 2026-10-31)
+
+- Installed Release launch, capture, and history restoration: passed.
+- Copy-only fallback before Accessibility enabled: passed. Direct paste after
+  granting permission: passed.
+- Launch at Login enabled → logout/login → automatic startup: passed.
+- Launch at Login disabled → logout/login → stays closed: passed.
+- Removing aftercopy in System Settings → next menu open unchecked: passed.
+- Replacing the installed app and relaunching: history preserved. Direct paste
+  initially did not work; the Accessibility entry was disabled. Enabling the
+  existing entry restored direct paste. Permission retention did not pass;
+  recovery worked, consistent with the documented ad-hoc-signing limitation.
+- Registration-failure message/state/menu usability: not tested. The user
+  encountered no registration errors; successful toggles do not verify this path.
