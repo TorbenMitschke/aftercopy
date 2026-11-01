@@ -2,7 +2,7 @@
 
 ## Overview
 
-aftercopy is a macOS menu bar clipboard manager. It monitors the system clipboard, captures qualifying text entries, and displays them via a menu bar interface.
+aftercopy is a macOS menu bar clipboard manager. It monitors the system clipboard, captures qualifying entries (plain text, plus images/RTF/HTML/file URLs when no usable text is present), and displays them via a menu bar interface.
 
 ## App Lifecycle
 
@@ -33,27 +33,34 @@ NSApplication → AppDelegate
 ### ClipboardMonitor
 - Polls NSPasteboard.general every second and tracks `changeCount`
 - Shares `captureIfChanged()` between timer polling and menu-opening refresh
-- Trims whitespace/newlines and rejects strings shorter than four characters
-- Advances the observed change count before delivering a valid string via `onCapture`
+- Pure `chooseKind(available:textPassesFilter:)` picks the captured kind: usable plain text first (trimmed, min 4 chars via `shouldCapture`, unchanged), otherwise image (png/tiff) → RTF → HTML → file URLs
+- Reads the payload for the chosen kind and delivers a `ClipboardItem` via `onCapture`; payloads over `ClipboardItem.maxPayloadBytes` (8 MiB) are skipped
+- Advances the observed change count before delivering a valid item via `onCapture`
 - `resetBaseline()` re-reads the current change count so Clear History does not recapture the unchanged clipboard
 
 ### ClipboardStore
-- Holds a bounded in-memory array of unique captured strings (retention cap: 100, oldest evicted first)
-- Rejects exact duplicates anywhere in history; duplicates do not move to the top
+- Holds a bounded in-memory array of unique captured `ClipboardItem`s (retention cap: 100, oldest evicted first)
+- Rejects exact duplicates anywhere in history (equality covers kind + payload); duplicates do not move to the top
 - Provides item count, `allItems` in insertion order, and `lastNItems(_:)` in newest-insertion-first order
 - `restore(_:)` rebuilds from persisted items through the same dedup/cap path; `clear()` empties the store
 - Keeps the existing nonisolated deinit workaround for the test-host toolchain crash
 
+### ClipboardItem
+- Nonisolated pure model (Codable, Equatable) for one captured entry: `kind` (text/image/richText/html/fileURLs) plus `text`, `data`/`dataType` (payload and its original pasteboard type), or `urls` for file selections
+- `make(...)` enforces the 8 MiB payload cap; `previewTitle(maxLength:)` produces menu labels
+- Unit-tested like PasteEligibility/LoginItemState; pasteboard I/O stays in ClipboardMonitor/ClipboardWriter
+
 ### HistoryPersistence
-- Owns the versioned plaintext JSON snapshot at `~/Library/Application Support/aftercopy/history.json` (`{"version":1,"items":[...]}`)
-- Saves atomically after each accepted mutation; entries over 64,000 characters stay in memory but are not persisted; files over 16 MiB are unsupported
+- Owns the versioned plaintext JSON snapshot at `~/Library/Application Support/aftercopy/history.json` (`{"version":2,"items":[ClipboardItem...]}`; `Data` payloads encode as base64)
+- Version 1 files (`{"version":1,"items":["..."]}`) load as text items in memory without quarantine and are rewritten as v2 on the next save
+- Saves atomically after each accepted mutation; text entries over 64,000 characters and payloads over 8 MiB stay in memory but are not persisted; files over 16 MiB are unsupported
 - Load distinguishes restored/empty/unavailable: missing file starts empty; corrupt, unsupported-version, or oversized files are quarantined as `history.json.corrupt-<timestamp>` and never silently overwritten
 - Write failures throw so the caller can continue in memory with a menu status; no clipboard contents are logged
 - Keeps the nonisolated deinit workaround; tests use an injectable file URL with isolated temporary storage
 
 ### HistoryMenuController
 - Owns the menu, preview section, and shortcut/permission actions; forwards selection to PasteCoordinator
-- Displays ten recent entries, single-line titles capped at 20 characters, full captured text in representedObject, and native ⌘1–⌘9/⌘0 equivalents
+- Displays ten recent entries, titles from `ClipboardItem.previewTitle` (text: single line capped at 20 characters; non-text kinds show `[Image]`/`[Rich text]`/`[HTML]`/`[Files: …]`), full captured item in representedObject, and native ⌘1–⌘9/⌘0 equivalents
 - Refreshes capture before mouse/shortcut menu opening through `onWillOpen`
 - Presents through the native status-button `performClick(nil)` path, without explicit app activation
 - Gates nested presentation while the menu is opening/tracking
@@ -68,13 +75,14 @@ NSApplication → AppDelegate
 - Virtual key bindings use physical ANSI V/H positions; labels are not dynamically translated for keyboard layouts
 
 ### ClipboardWriter
-- Copies an NSMenuItem's representedObject string to NSPasteboard.general
+- `copy(_ item: ClipboardItem)` clears NSPasteboard.general and writes the item's original payload: string, image/RTF/HTML data under its recorded pasteboard type, or file URLs via `writeObjects`
+- `copy(_ text: String)` delegates to `copy(.text(text))`
 - Reports write success so failed copies cannot trigger a synthetic paste
 - Keeps the existing target/action copy adapter; the history menu now forwards selection to PasteCoordinator
 
 ### PasteCoordinator / PasteEligibility / HistoryItemShortcut
 - PasteCoordinator owns ClipboardWriter and a per-opening destination/session; new sessions and shutdown invalidate pending work
-- Copies selection first, then waits asynchronously on a default-mode timer until menu tracking is finished, necessary focus is confirmed, and shortcut modifiers are released
+- Copies the selected `ClipboardItem` (rich payload included) first, then waits asynchronously on a default-mode timer until menu tracking is finished, necessary focus is confirmed, and shortcut modifiers are released
 - Bounds readiness to one second; rechecks permission, destination PID/liveness, focus, and pasteboard changeCount before posting one Cmd+V pair addressed to the original PID
 - Activates the original destination only when aftercopy itself is frontmost; never activates over another external app
 - Does not retry posted events or claim that posting proves insertion into a receiving app
@@ -112,8 +120,8 @@ NSPasteboard does not post system notifications when the clipboard changes. Poll
 
 ## Verification boundary
 
-XCTest covers store/filter, shortcut preferences, numbered mapping, pure paste
-eligibility, history persistence, and login-item status mapping (55 tests). App-hosted tests skip live capture
+XCTest covers store/filter, rich-item model and kind selection, shortcut preferences, numbered mapping, pure paste
+eligibility, history persistence (incl. v1→v2 migration), and login-item status mapping (78 tests). App-hosted tests skip live capture
 and hotkey registration; tests do not grant permission, activate another app, post
 events, or touch the production history path (persistence tests use isolated
 temporary storage). Native menu navigation, permission, focus, actual paste,

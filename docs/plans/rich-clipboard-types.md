@@ -1,6 +1,8 @@
 # Rich clipboard types (images, RTF, HTML, file URLs) — implementation plan
 
-Date: 2026-11-01. Status: **proposed — awaiting user approval.**
+Date: 2026-11-01. Status: **approved 2026-11-01 (text-first capture policy confirmed);
+implemented on `feat/rich-clipboard-types`; 78/78 automated tests pass from an
+isolated copy. Manual checklist pending user run.**
 
 Issue: #28 (promotes the PARKING_LOT "Rich types (images, RTF, HTML, file URLs)" item,
 Data section). Implementation branch: `feat/rich-clipboard-types`, cut from `main`
@@ -145,3 +147,23 @@ group — verify with `xcodebuild -list -project aftercopy.xcodeproj` after addi
 
 Per-app ignore rules, auto-expire, history encryption, SQLite migration, logging
 strategy, code signing/notarization, menu thumbnails/image icons, Linux port.
+
+## Implementation record (2026-11-01)
+
+Implemented exactly per the approved scope decisions (text-first capture, one kind
+per entry, 8 MiB payload cap, v2 + v1 migration, preview titles, no thumbnails):
+
+- `2072ea8` feat: `ClipboardItem` model + `ClipboardMonitor.chooseKind` with tests
+  (`ClipboardItemTests`, `ClipboardMonitorTests` additions)
+- `939b712` feat: `ClipboardStore` over `[ClipboardItem]`; `HistoryPersistence`
+  v2 with v1 migration and persistability caps, tests adapted + new migration/cap tests
+- `428ac08` feat: `ClipboardWriter.copy(_ item:)`, menu previews/`representedObject`,
+  `PasteCoordinator.select(_ item:session:)`, thin `AppDelegate` wiring
+- `6ab5108`, `39b4e6b`, `0341d41` fix: compile/test corrections (previewTitle as
+  method, NSURL pasteboard writing, 20-char prefix expectation)
+- Check from an isolated `git archive` copy of the branch (separate DerivedData;
+  installed app and Accessibility grant untouched): **Test Succeeded, 78/78
+  passed, 0 failed**; `git diff --check` clean; no project.pbxproj or build-setting
+  changes.
+- Not yet run: the manual checklist above (agent sessions cannot launch the GUI
+  app) — pending the user.

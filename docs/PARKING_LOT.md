@@ -11,6 +11,7 @@ Move items to a GitHub Issue when ready to work on them
 ## Promoted to an issue
 - Global hotkey and direct-paste/numbered-selection extension: #19, implemented on `feat/keyboard-history-menu`; all eight interactive acceptance steps user-confirmed passed; remaining verification limits are recorded in the plan. Current plan: `docs/plans/keyboard-history-direct-paste.md`.
 - Bounded local history persistence and Clear History: #21, planned in `docs/plans/history-persistence-clear-history.md` and implemented on `feat/history-persistence-clear-history` (versioned plaintext JSON, 100-entry cap, atomic saves, clear across memory/disk/restart). SQLite migration remains parked.
+- Rich clipboard types (images, RTF, HTML, file URLs): #28, planned in `docs/plans/rich-clipboard-types.md` and implemented on `feat/rich-clipboard-types` (ClipboardItem model, text-first capture policy, history v2 with v1 migration, payload re-copy on selection). Menu thumbnails remain parked.
 
 ## UI / UX
 - [ ] Notch-aware UI (custom window positioning near MacBook Pro notch)
@@ -22,7 +23,7 @@ Move items to a GitHub Issue when ready to work on them
 
 ## Data
 - [ ] Persistance (JSON done in #21; SQLite migration still parked)
-- [ ] Rich types (images, RTF, HTML, file URLs)
+- [ ] Menu thumbnails for image entries (needs storing NSImage references)
 
 ## Operations
 - [x] Launch at login (#22; implemented on feat/launch-at-login)
