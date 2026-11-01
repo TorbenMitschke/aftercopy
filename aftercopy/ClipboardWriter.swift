@@ -39,7 +39,7 @@ final class ClipboardWriter: NSObject {
             let type = item.dataType.map { NSPasteboard.PasteboardType($0) } ?? fallback
             return pasteboard.setData(data, forType: type)
         case .fileURLs:
-            let urls = (item.urls ?? []).compactMap { URL(string: $0) }
+            let urls = (item.urls ?? []).compactMap { NSURL(string: $0) }
             guard !urls.isEmpty else { return false }
             return pasteboard.writeObjects(urls)
         }
