@@ -55,7 +55,7 @@ final class ClipboardItemTests: XCTestCase {
 
     func test_previewTitle_text_truncatesAndFlattensNewlines() {
         XCTAssertEqual(ClipboardItem.text("line1\nline2 is long").previewTitle(), "line1 line2 is long")
-        XCTAssertEqual(ClipboardItem.text("a very long piece of text").previewTitle(), "a very long piece o...")
+        XCTAssertEqual(ClipboardItem.text("a very long piece of text").previewTitle(), "a very long piece of...")
         XCTAssertEqual(ClipboardItem.text("short").previewTitle(), "short")
     }
 
