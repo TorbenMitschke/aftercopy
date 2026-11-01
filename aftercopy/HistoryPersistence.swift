@@ -2,6 +2,11 @@ import Foundation
 
 struct HistorySnapshot: Codable {
     let version: Int
+    let items: [ClipboardItem]
+}
+
+struct LegacyHistorySnapshot: Codable {
+    let version: Int
     let items: [String]
 }
 
@@ -12,14 +17,18 @@ enum HistoryPersistenceError: Error {
 final class HistoryPersistence {
 
     enum LoadResult: Equatable {
-        case restored([String])
+        case restored([ClipboardItem])
         case empty
         case unavailable
     }
 
-    static let currentVersion = 1
+    static let currentVersion = 2
     static let maxPersistedEntryCharacters = 64_000
     static let maxFileBytes = 16 * 1024 * 1024
+
+    private struct VersionProbe: Codable {
+        let version: Int?
+    }
 
     private let fileURL: URL
     private let fileManager: FileManager
@@ -38,6 +47,17 @@ final class HistoryPersistence {
         return appSupport.appendingPathComponent("aftercopy/history.json")
     }
 
+    static func isPersistable(_ item: ClipboardItem, maxTextCharacters: Int, maxPayloadBytes: Int) -> Bool {
+        switch item.kind {
+        case .text:
+            return (item.text ?? "").count <= maxTextCharacters
+        case .image, .richText, .html:
+            return (item.data?.count ?? 0) <= maxPayloadBytes
+        case .fileURLs:
+            return !(item.urls ?? []).isEmpty
+        }
+    }
+
     func load() -> LoadResult {
         quarantineFailed = false
         guard fileManager.fileExists(atPath: fileURL.path) else { return .empty }
@@ -49,19 +69,37 @@ final class HistoryPersistence {
             quarantineCurrentFile()
             return .unavailable
         }
-        guard let snapshot = try? JSONDecoder().decode(HistorySnapshot.self, from: data),
-              snapshot.version == Self.currentVersion else {
+        guard let probe = try? JSONDecoder().decode(VersionProbe.self, from: data) else {
             quarantineCurrentFile()
             return .unavailable
         }
-        return .restored(snapshot.items)
+        switch probe.version {
+        case 1:
+            guard let legacy = try? JSONDecoder().decode(LegacyHistorySnapshot.self, from: data) else {
+                quarantineCurrentFile()
+                return .unavailable
+            }
+            return .restored(legacy.items.map { ClipboardItem.text($0) })
+        case Self.currentVersion:
+            guard let snapshot = try? JSONDecoder().decode(HistorySnapshot.self, from: data) else {
+                quarantineCurrentFile()
+                return .unavailable
+            }
+            return .restored(snapshot.items)
+        default:
+            quarantineCurrentFile()
+            return .unavailable
+        }
     }
 
-    func save(_ items: [String]) throws {
+    func save(_ items: [ClipboardItem]) throws {
         if quarantineFailed, fileManager.fileExists(atPath: fileURL.path) {
             throw HistoryPersistenceError.preservedFileBlocksSave
         }
-        let persistedItems = items.filter { $0.count <= Self.maxPersistedEntryCharacters }
+        let persistedItems = items.filter {
+            Self.isPersistable($0, maxTextCharacters: Self.maxPersistedEntryCharacters,
+                              maxPayloadBytes: ClipboardItem.maxPayloadBytes)
+        }
         let snapshot = HistorySnapshot(version: Self.currentVersion, items: persistedItems)
         let data = try JSONEncoder().encode(snapshot)
         let directory = fileURL.deletingLastPathComponent()
