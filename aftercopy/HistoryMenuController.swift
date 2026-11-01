@@ -17,7 +17,7 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
      private let storageStatusItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
      private let clearHistoryItem = NSMenuItem(title: "Clear History", action: #selector(clearHistory(_:)), keyEquivalent: "")
      var onBeginSession: ((NSRunningApplication?) -> UInt64)?
-     var onSelect: ((String, UInt64) -> Void)?
+     var onSelect: ((ClipboardItem, UInt64) -> Void)?
      var onMenuClosed: ((UInt64) -> Void)?
      var onEnableDirectPaste: (() -> Void)?
      var onWillOpen: (() -> Void)?
@@ -71,11 +71,11 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
         previewMenuItems.forEach { menu.removeItem($0) }
         previewMenuItems.removeAll()
         let insertionIndex = menu.index(of: bottomSeparator)
-        for (offset, text) in store.lastNItems(maxPreviewItems).enumerated() {
-            let item = NSMenuItem(title: previewTitle(for: text), action: #selector(selectHistoryItem(_:)), keyEquivalent: HistoryItemShortcut.keyEquivalent(for: offset) ?? "")
+        for (offset, entry) in store.lastNItems(maxPreviewItems).enumerated() {
+            let item = NSMenuItem(title: entry.previewTitle(), action: #selector(selectHistoryItem(_:)), keyEquivalent: HistoryItemShortcut.keyEquivalent(for: offset) ?? "")
             item.target = self
             item.keyEquivalentModifierMask = .command
-            item.representedObject = text
+            item.representedObject = entry
             menu.insertItem(item, at: insertionIndex + offset)
             previewMenuItems.append(item)
         }
@@ -149,8 +149,8 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
      }
 
     @objc private func selectHistoryItem(_ sender: NSMenuItem) {
-        guard let text = sender.representedObject as? String, let selectionSession else { return }
-        onSelect?(text, selectionSession)
+        guard let entry = sender.representedObject as? ClipboardItem, let selectionSession else { return }
+        onSelect?(entry, selectionSession)
     }
 
     @objc private func enableDirectPaste(_ sender: NSMenuItem) {
@@ -163,9 +163,4 @@ final class HistoryMenuController: NSObject, NSMenuDelegate {
         onChooseShortcut?(configuration)
     }
 
-    private func previewTitle(for text: String, maxLength: Int = 20) -> String {
-        let singleLine = text.replacingOccurrences(of: "\n", with: " ")
-        guard singleLine.count > maxLength else { return singleLine }
-        return String(singleLine.prefix(maxLength)) + "..."
-    }
 }
