@@ -1,16 +1,17 @@
 # Progress
 
 ## Current task
-Issue #22 implementation is on `feat/launch-at-login` as `7c782d7` (feat),
-`29c502d` and `85d2d4e` (docs), pushed and opened as PR #26 (closes #22):
-opt-in SMAppService registration, menu state/error guidance, pure mapping
-tests, and docs/SETUP.md. All 55 automated tests pass (50 existing + 5 new,
-re-run from an isolated copy of the pushed branch); the isolated Release build
-passes. User-confirmed manual checks passed for installed launch/history,
-copy-only and direct paste, login startup on/off, and external Settings
-refresh. Replacement preserved history; Accessibility was disabled and needed
-re-enabling for direct paste. Registration-failure handling was not exercised
-(no errors encountered).
+Issue #22 (installable Release app + Launch at Login) is **merged into `main`
+via PR #26 (`7814cb7`) on 2026-11-01**; issue #22 is closed (auto-closed by the
+PR), and `feat/launch-at-login` is deleted locally and remotely. All 55
+automated tests pass (50 existing + 5 new, verified from isolated copies of the
+branch with separate DerivedData), and the isolated Release build passes.
+User-confirmed manual checks passed for installed launch/history, copy-only
+and direct paste, login startup on/off, and external Settings refresh;
+registration-failure handling was not exercised (no errors occurred; left as
+not tested per user). Replacement preserved history; Accessibility needed
+re-enabling afterwards (documented ad-hoc-signing caveat). No approved next
+iteration — see Next step.
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -37,6 +38,23 @@ tracked-file copy with separate DerivedData so the working app bundle and its
 Accessibility grant stay intact. No clipboard contents are logged. The user ran
 the six-step manual acceptance checklist on 2026-10-31 and passed all steps.
 
+Issue #22 shipped on `feat/launch-at-login` and merged via PR #26 (`7814cb7`):
+`7c782d7` adds LoginItemManager (SMAppService.mainApp glue), LoginItemState
+(nonisolated pure status → checkmark/message mapping) with five unit tests, a
+"Launch at Login" checkmark item next to Clear History plus a hidden status line
+in HistoryMenuController, and thin AppDelegate wiring (refresh on launch and
+each menu open; toggle failure keeps the previous checkmark and shows a status
+message); `29c502d` adds docs/SETUP.md (Release install, Accessibility grant,
+Launch at Login usage, replace-on-update); `85d2d4e` records verification in
+the plan, ARCHITECTURE.md, PARKING_LOT.md, and PROGRESS.md. Default opt-in;
+requiresApproval opens System Settings → Login Items. No project.pbxproj or
+build-setting changes (the file-synchronized groups picked up the new files).
+All 55 tests pass from isolated copies with separate DerivedData, so the
+installed app and the dev bundle/accessibility grant stay intact. Manual
+results (user-confirmed 2026-10-31) are recorded in
+`docs/plans/launch-at-login-installable-release.md`; the registration-failure
+path remains untested.
+
 The user confirmed original menu arrows work. Direct paste initially stayed copy-only
 although Settings showed Accessibility enabled. macOS logs for the restarted process
 still denied kTCCServicePostEvent. After removing/re-adding the current Debug app's
@@ -46,12 +64,23 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-Review PR #26 (https://github.com/TorbenMitschke/aftercopy/pull/26, head
-`85d2d4e`); merge awaits user direction. Registration-failure behavior
-remains manually untested; no registration errors occurred. Manual results
-are recorded in `docs/plans/launch-at-login-installable-release.md`.
+No approved next iteration. To start one, promote a PARKING_LOT item (rich
+clipboard types, logging strategy, code signing/notarization) to a scoped
+GitHub issue, write a plan in `docs/plans/`, and get user approval before any
+code — per AGENTS.md. Keep the installed Release app and its bundle stable;
+ad-hoc rebuilds may require refreshing the Accessibility grant (docs/SETUP.md).
 
 ## Decisions
+- 2026-11-01: User said "merge". PR #26 merged as `7814cb7` (merge commit);
+  issue #22 auto-closed by "Closes #22"; `feat/launch-at-login` deleted locally
+  and remotely; local `main` fast-forwarded. (`gh pr merge` first tripped over
+  the uncommitted T3-routing PROGRESS.md edit in the working tree; the
+  server-side merge succeeded anyway, and the harness edits were stashed and
+  restored, left uncommitted and out of the merge.) The registration-failure
+  manual check stays recorded as not tested, per user. Review Q&A on PR #26
+  kept `LoginItemState` as the pure type (PasteEligibility pattern; pure-logic-
+  only test boundary). PROGRESS.md reconciled via a docs PR. Check re-run from
+  an isolated copy of merged main: 55/55 tests passed.
 - 2026-10-31: Agent reviewed the uncommitted #22 diff — no code findings (the
   pure mapping type is named `LoginItemState` rather than the issue's
   `LoginItemStatusText` sketch because it also carries `isRegistered`; the
@@ -184,10 +213,10 @@ are recorded in `docs/plans/launch-at-login-installable-release.md`.
 ## Open issues
 - Issue #21: merged via PR #23 (`b255f19`), closed. Manual acceptance checklist
   passed by the user on 2026-10-31 (all six steps); automated coverage: 50 tests.
-- Issue #22: implemented on `feat/launch-at-login` (`7c782d7`/`29c502d`/`85d2d4e`),
-  pushed; PR #26 open (closes #22). 55 tests pass from an isolated copy. Manual
-  checks passed except registration-failure handling (not exercised). Replacement
-  required re-enabling Accessibility; history survived.
+- Issue #22: merged via PR #26 (`7814cb7`), closed 2026-11-01. 55 automated
+  tests pass from isolated copies. Manual checks passed except registration-
+  failure handling (left untested per user; no registration errors occurred).
+  Replacement required re-enabling Accessibility; history survived.
 - Ad-hoc development rebuilds can invalidate the effective permission grant;
   stable signing/install workflow is deferred setup work, not implemented here.
 - Saved history is plaintext on disk and may contain secrets; encryption remains
