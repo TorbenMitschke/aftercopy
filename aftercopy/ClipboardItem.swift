@@ -36,7 +36,7 @@ nonisolated struct ClipboardItem: Codable, Equatable {
         return ClipboardItem(kind: kind, text: text, data: data, dataType: dataType, urls: urls)
     }
 
-    var previewTitle(maxLength: Int = 20) -> String {
+    func previewTitle(maxLength: Int = 20) -> String {
         switch kind {
         case .text:
             let singleLine = (text ?? "").replacingOccurrences(of: "\n", with: " ")
