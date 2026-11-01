@@ -31,10 +31,10 @@ final class PasteCoordinator {
         return sessionID
     }
 
-    func select(_ text: String, session: UInt64) {
+    func select(_ item: ClipboardItem, session: UInt64) {
         guard session == sessionID, !selectionAccepted else { return }
         selectionAccepted = true
-        guard clipboardWriter.copy(text) else {
+        guard clipboardWriter.copy(item) else {
             finish(reason: PasteEligibility.Reason.copyFailed.rawValue)
             return
         }

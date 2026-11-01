@@ -85,8 +85,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         historyMenuController.onBeginSession = { [weak self] destination in
             self?.pasteCoordinator.beginSession(destination: destination) ?? 0
         }
-        historyMenuController.onSelect = { [weak self] text, session in
-            self?.pasteCoordinator.select(text, session: session)
+        historyMenuController.onSelect = { [weak self] item, session in
+            self?.pasteCoordinator.select(item, session: session)
         }
         historyMenuController.onMenuClosed = { [weak self] session in
             self?.pasteCoordinator.menuDidClose(session: session)
