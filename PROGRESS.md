@@ -1,15 +1,18 @@
 # Progress
 
 ## Current task
-Issue #28 (rich clipboard types: images, RTF, HTML, file URLs) is **implemented
-on `feat/rich-clipboard-types`** per the approved plan
+Issue #28 (rich clipboard types: images, RTF, HTML, file URLs) is **merged into
+`main` via PR #29 (`491ef0b`) on 2026-11-01**; issue #28 is closed (auto-closed by
+the PR), and `feat/rich-clipboard-types` / `docs/rich-clipboard-types-plan` are
+deleted locally and remotely. Implemented per the approved plan
 (`docs/plans/rich-clipboard-types.md`): `ClipboardItem` model, text-first
 capture with image → RTF → HTML → file URLs fallback, history file v2 with v1
 migration, payload re-copy on selection, kind preview labels. All **78 automated
-tests pass** (55 existing + 23 new, verified from an isolated `git archive` copy
-of the branch with separate DerivedData), and `git diff --check` is clean. PR and
-the manual checklist are pending — see Next step. The T3-routing harness files
-in the working tree stay uncommitted and out of all public branches per user.
+tests pass** (55 existing + 23 new), re-verified from an isolated `git archive`
+copy of merged `main` with separate DerivedData; `git diff --check` was clean.
+The user-run manual checklist is still pending — see Next step. The T3-routing
+harness files in the working tree stay uncommitted and out of all public
+branches per user.
 
 ## State
 Issue #19's keyboard recall plus direct-paste extension is implemented and merged
@@ -62,9 +65,10 @@ steps, recorded in the direct-paste plan. These cover normal use, permission
 fallback/recovery, timeout, focus changes, and stale-selection prevention.
 
 ## Next step
-For #28: push `feat/rich-clipboard-types`, open the PR (closes #28), merge on
-user direction, then the user runs the eight-step manual checklist in
-`docs/plans/rich-clipboard-types.md` on the installed Release app. After that,
+#28 is merged; the user runs the eight-step manual checklist in
+`docs/plans/rich-clipboard-types.md` on the installed Release app (rebuild +
+reinstall per docs/SETUP.md first; ad-hoc rebuilds may require refreshing the
+Accessibility grant). After that,
 no approved next iteration: promote a PARKING_LOT item (logging strategy, code
 signing/notarization, per-app ignore rules, auto-expire, encryption) to a scoped
 GitHub issue, write a plan in `docs/plans/`, and get user approval before any
@@ -79,8 +83,13 @@ ad-hoc rebuilds may require refreshing the Accessibility grant (docs/SETUP.md).
   (`9781607`); user reviewed capture priority and confirmed the plan as written
   (text first, then image → RTF → HTML → file URLs). Implemented on
   `feat/rich-clipboard-types` in three feat commits plus three fix commits;
-  isolated-copy check: 78/78 tests pass. Not pushed yet — push/PR/merge awaits
-  user direction.
+  isolated-copy check: 78/78 tests pass. Pushed, PR #29 opened (closes #28).
+- 2026-11-01: PR #29 merged as `491ef0b` (merge commit); issue #28 auto-closed;
+  `feat/rich-clipboard-types` and `docs/rich-clipboard-types-plan` deleted
+  locally and remotely; local `main` fast-forwarded to `origin/main`.
+  Check re-run from an isolated copy of merged `main`: 78/78 tests passed.
+  PROGRESS.md reconciled via a docs PR. The #28 manual checklist remains pending
+  the user.
 - 2026-11-01: User said "merge". PR #26 merged as `7814cb7` (merge commit);
   issue #22 auto-closed by "Closes #22"; `feat/launch-at-login` deleted locally
   and remotely; local `main` fast-forwarded. (`gh pr merge` first tripped over
@@ -221,11 +230,11 @@ ad-hoc rebuilds may require refreshing the Accessibility grant (docs/SETUP.md).
   Cmd+R before merge.
 
 ## Open issues
-- Issue #28: implemented on `feat/rich-clipboard-types` (plan approved
-  2026-11-01); 78/78 automated tests pass from an isolated copy. Open: push, PR,
-  merge, and the user-run manual checklist (image/file/rich capture and re-copy,
-  oversized fallback, v1→v2 migration, relaunch restore, Clear History, direct
-  paste of a rich selection).
+- Issue #28: merged via PR #29 (`491ef0b`), closed 2026-11-01. 78/78 automated
+  tests pass from isolated copies of the branch and merged `main`. Open: the
+  user-run manual checklist (image/file/rich capture and re-copy, oversized
+  fallback, v1→v2 migration, relaunch restore, Clear History, direct paste of a
+  rich selection).
 - Issue #21: merged via PR #23 (`b255f19`), closed. Manual acceptance checklist
   passed by the user on 2026-10-31 (all six steps); automated coverage: 50 tests.
 - Issue #22: merged via PR #26 (`7814cb7`), closed 2026-11-01. 55 automated
